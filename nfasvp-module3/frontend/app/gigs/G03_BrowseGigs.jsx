@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { C, Navbar, StickyNote, VerifiedBadge, Stars, Btn, GIG_CARDS } from "./shared";
+import { useState, useMemo } from "react";
+import { C, Navbar, StickyNote, VerifiedBadge, Stars, Btn } from "./shared";
+import { useGigs } from "../../hooks/useGigs";
 
 // ─── GIG CARD ────────────────────────────────────────────────────────────────
 function GigCard({ gig, onNavigate }) {
@@ -76,7 +77,37 @@ export default function BrowseGigs({ onNavigate }) {
   const [delivery, setDelivery] = useState("");
   const [search, setSearch] = useState("");
 
+  const filters = useMemo(() => {
+    const f = {};
+    if (activeFilter !== "All") f.category_id = activeFilter; // Not real category ID, but just for demo
+    if (budgetMin) f.min_price = budgetMin;
+    if (budgetMax) f.max_price = budgetMax;
+    return f;
+  }, [activeFilter, budgetMin, budgetMax]);
+
+  const { gigs, loading, error, meta } = useGigs(filters);
+
   const FILTERS = ["All", "Web Dev", "Design", "Writing", "Marketing", "Data", "Video"];
+
+  // Map API gig format to the UI card format
+  const mappedGigs = useMemo(() => {
+    if (!gigs) return [];
+    return gigs.map(g => {
+      const basicTier = g.pricing_tiers?.[0] || {};
+      return {
+        id: g.id,
+        name: `Freelancer ${g.freelancer_id?.substring(0, 4) || ''}`, // Mocks name since we don't fetch users
+        rating: g.avg_rating || "0.0",
+        reviews: g.review_count || "0",
+        title: g.title,
+        tags: g.required_skills?.map(s => s.tag || 'Skill').slice(0, 2) || ["Skill"],
+        price: `PKR ${basicTier.price || 'N/A'}`,
+        delivery: `${basicTier.delivery_days || '?'} days`,
+        color: "#E8F4FD", 
+        icon: "💻"
+      };
+    });
+  }, [gigs]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
@@ -173,7 +204,7 @@ export default function BrowseGigs({ onNavigate }) {
 
           {/* Sort Bar */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}`, paddingBottom: 12 }}>
-            <span style={{ fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Showing latest <strong>6 gigs</strong></span>
+            <span style={{ fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Showing latest <strong>{meta?.total || 0} gigs</strong></span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 13, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Sort by:</span>
               <select style={{ padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
@@ -186,9 +217,17 @@ export default function BrowseGigs({ onNavigate }) {
           </div>
 
           {/* 3×2 Gig Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
-            {GIG_CARDS.map(g => <GigCard key={g.id} gig={g} onNavigate={onNavigate} />)}
-          </div>
+          {loading ? (
+            <div style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>Loading gigs...</div>
+          ) : error ? (
+            <div style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'DM Sans', sans-serif" }}>Error: {error}</div>
+          ) : mappedGigs.length === 0 ? (
+            <div style={{ padding: 40, textAlign: "center", color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>No gigs found matching filters.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+              {mappedGigs.map(g => <GigCard key={g.id} gig={g} onNavigate={onNavigate} />)}
+            </div>
+          )}
 
           {/* Pagination */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, paddingTop: 8 }}>

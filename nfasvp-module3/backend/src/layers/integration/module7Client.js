@@ -1,41 +1,42 @@
 // Outbound to Module 7 (Payment & Escrow)
-// Called after bid acceptance to initiate escrow setup for the new project
+// Called after bid acceptance to initiate escrow for the new project.
+// Non-blocking — failure must never affect marketplace state.
 
-const axios = require('axios');
+const axios  = require('axios');
 const config = require('../../config/env');
 
+const BASE_URL = config.module7.baseUrl;
+const API_KEY  = config.module7.apiKey;
+
+const headers = {
+  'Content-Type'   : 'application/json',
+  'X-Source-Module': 'module3',
+  'Authorization'  : `Bearer ${API_KEY}`,
+};
+
 /**
- * Initiates escrow setup for a newly awarded project.
- * Called non-blocking from BiddingService.acceptBid()
- * 
- * @param {Object} projectData - { project_id, client_id, freelancer_id, agreed_amount, currency, deadline }
- * @returns {Promise<Object|null>} - M7 response or null on failure
+ * Initiate escrow for a newly awarded project.
+ * @param {Object} project - { id, client_id, freelancer_id, total_amount }
+ * @returns {Promise<Object|null>}
  */
-async function initiateEscrow(projectData) {
+async function initiateEscrow(project) {
   try {
-    const response = await axios.post(
-      `${config.MODULE7_BASE_URL}/api/v1/escrow/initiate`,
+    const res = await axios.post(
+      `${BASE_URL}/api/v1/escrow/initiate`,
       {
-        project_id: projectData.id,
-        client_user_id: projectData.client_id,
-        freelancer_user_id: projectData.freelancer_id,
-        total_amount: projectData.agreed_amount,
-        currency_code: projectData.currency || 'USD',
+        project_id         : project.id,
+        client_user_id     : project.client_id,
+        freelancer_user_id : project.freelancer_id,
+        total_amount       : project.total_amount,
+        currency_code      : 'PKR',
       },
-      {
-        headers: {
-          'Authorization': `Bearer ${config.MODULE7_API_KEY}`,
-          'Content-Type': 'application/json',
-          'X-Source-Module': 'module3',
-        },
-        timeout: 8000,
-      }
+      { headers, timeout: 8000 }
     );
-    console.log(`[M7 Integration] Escrow initiated for project ${projectData.id}:`, response.data);
-    return response.data;
-  } catch (error) {
-    console.error(`[M7 Integration] Escrow initiation failed for project ${projectData.id}:`, error.message);
-    return null; // Non-blocking — log and continue
+    console.log(`[M7] Escrow initiated for project ${project.id}`);
+    return res.data;
+  } catch (err) {
+    console.warn(`[M7] Escrow initiation failed (non-fatal): ${err.message}`);
+    return null;
   }
 }
 

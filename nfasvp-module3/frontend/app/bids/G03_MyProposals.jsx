@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { C, Navbar, Sidebar, StatusBadge, Btn, PROPOSALS } from "./fbs_shared";
+import { useState, useMemo } from "react";
+import { C, Navbar, Sidebar, StatusBadge, Btn } from "./fbs_shared";
+import { useMyProposals } from "../../hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 10 - My Proposals
@@ -15,9 +16,20 @@ export default function MyProposals({ onNavigate }) {
     { label: "Rejected",        value: "3",  color: "#DC2626" },
   ];
 
-  const filteredProposals = activeTab === "All"
-    ? PROPOSALS
-    : PROPOSALS.filter(p => p.status === activeTab);
+  const apiStatusFilter = activeTab === "All" ? "" : activeTab.toLowerCase();
+  const { bids, loading, error, meta } = useMyProposals(apiStatusFilter ? { status: apiStatusFilter } : {});
+
+  const mappedProposals = useMemo(() => {
+    if (!bids) return [];
+    return bids.map(b => ({
+      id: b.id,
+      job: b.job?.title || "Unknown Job",
+      client: `Client ${b.job?.client_id?.substring(0,4) || ''}`,
+      amount: `PKR ${b.bid_amount}`,
+      date: new Date(b.submitted_at || b.created_at).toLocaleDateString(),
+      status: b.status.charAt(0).toUpperCase() + b.status.slice(1)
+    }));
+  }, [bids]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: C.white }}>
@@ -85,7 +97,12 @@ export default function MyProposals({ onNavigate }) {
 
           {/* Stats Row */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18 }}>
-            {STATS.map(s => (
+            {[
+              { label: "Total Submitted", value: meta?.total || 0, color: C.navy },
+              { label: "Pending Review",  value: "-",  color: "#D97706" }, // To get actual grouped counts, you'd need an aggregate endpoint
+              { label: "Accepted",        value: "-",  color: "#0D9488" },
+              { label: "Rejected",        value: "-",  color: "#DC2626" },
+            ].map(s => (
               <div key={s.label} style={{
                 background: C.bgSidebar, border: "1px solid rgba(196,198,208,0.4)",
                 borderRadius: 12, padding: 28, display: "flex", flexDirection: "column", gap: 8,
@@ -122,35 +139,41 @@ export default function MyProposals({ onNavigate }) {
             </div>
 
             {/* Rows */}
-            {filteredProposals.map((p, idx) => (
-              <div key={p.id} style={{
-                display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1.3fr 1.3fr 1fr",
-                background: idx % 2 === 0 ? C.white : C.bgPage,
-                borderTop: `1px solid ${C.border}`,
-                alignItems: "center",
-              }}>
-                <div style={{ padding: "24px 32px" }}>
-                  <span style={{ fontWeight: 700, fontSize: 16, color: C.navy, fontFamily: "'Inter', sans-serif", display: "block", lineHeight: 1.3 }}>{p.job}</span>
+            {loading ? (
+              <div style={{ padding: 40, textAlign: "center" }}>Loading proposals...</div>
+            ) : error ? (
+              <div style={{ padding: 40, textAlign: "center", color: "red" }}>Error: {error}</div>
+            ) : (
+              mappedProposals.map((p, idx) => (
+                <div key={p.id} style={{
+                  display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1.3fr 1.3fr 1fr",
+                  background: idx % 2 === 0 ? C.white : C.bgPage,
+                  borderTop: `1px solid ${C.border}`,
+                  alignItems: "center",
+                }}>
+                  <div style={{ padding: "24px 32px" }}>
+                    <span style={{ fontWeight: 700, fontSize: 16, color: C.navy, fontFamily: "'Inter', sans-serif", display: "block", lineHeight: 1.3 }}>{p.job}</span>
+                  </div>
+                  <div style={{ padding: "24px 32px" }}>
+                    <span style={{ fontWeight: 500, fontSize: 16, color: C.textBody, fontFamily: "'Inter', sans-serif" }}>{p.client}</span>
+                  </div>
+                  <div style={{ padding: "24px 32px" }}>
+                    <span style={{ fontWeight: 900, fontSize: 16, color: C.navy, fontFamily: "'Inter', sans-serif" }}>{p.amount}</span>
+                  </div>
+                  <div style={{ padding: "24px 32px" }}>
+                    <span style={{ fontSize: 16, color: C.textBody, fontFamily: "'Inter', sans-serif" }}>{p.date}</span>
+                  </div>
+                  <div style={{ padding: "24px 32px" }}>
+                    <StatusBadge status={p.status} />
+                  </div>
+                  <div style={{ padding: "24px 32px", display: "flex", justifyContent: "flex-end" }}>
+                    <Btn variant="outlined" small onClick={() => onNavigate("review")} style={{ height: 36, padding: "0 24px", fontSize: 12, borderWidth: 2 }}>View</Btn>
+                  </div>
                 </div>
-                <div style={{ padding: "24px 32px" }}>
-                  <span style={{ fontWeight: 500, fontSize: 16, color: C.textBody, fontFamily: "'Inter', sans-serif" }}>{p.client}</span>
-                </div>
-                <div style={{ padding: "24px 32px" }}>
-                  <span style={{ fontWeight: 900, fontSize: 16, color: C.navy, fontFamily: "'Inter', sans-serif" }}>{p.amount}</span>
-                </div>
-                <div style={{ padding: "24px 32px" }}>
-                  <span style={{ fontSize: 16, color: C.textBody, fontFamily: "'Inter', sans-serif" }}>{p.date}</span>
-                </div>
-                <div style={{ padding: "24px 32px" }}>
-                  <StatusBadge status={p.status} />
-                </div>
-                <div style={{ padding: "24px 32px", display: "flex", justifyContent: "flex-end" }}>
-                  <Btn variant="outlined" small onClick={() => onNavigate("review")} style={{ height: 36, padding: "0 24px", fontSize: 12, borderWidth: 2 }}>View</Btn>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
 
-            {filteredProposals.length === 0 && (
+            {!loading && !error && mappedProposals.length === 0 && (
               <div style={{ padding: 40, textAlign: "center", color: "#747780", fontFamily: "'Inter', sans-serif", fontSize: 14 }}>
                 No proposals found for this filter.
               </div>

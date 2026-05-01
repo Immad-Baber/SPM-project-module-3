@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { C, Navbar, Sidebar, SkillTag, StatusBadge, Btn, JOB_CARDS } from "./fbs_shared";
+import { useState, useMemo } from "react";
+import { C, Navbar, Sidebar, SkillTag, StatusBadge, Btn } from "./fbs_shared";
+import { useJobs } from "../../hooks/useJobs";
 
 // ─── JOB CARD ────────────────────────────────────────────────────────────────
 function JobCard({ job, onNavigate }) {
@@ -83,6 +84,31 @@ export default function BrowseJobs({ onNavigate }) {
   const [budget, setBudget] = useState("");
   const [projectType, setProjectType] = useState("");
 
+  const filters = useMemo(() => {
+    const f = {};
+    if (projectType) f.project_type = projectType === "Hourly" ? "hourly" : "fixed_price";
+    // Search is not directly supported in the simple job list filter, but we can pass it
+    // depending on the backend, or rely on search endpoint
+    return f;
+  }, [projectType]);
+
+  const { jobs, loading, error, meta } = useJobs(filters);
+
+  const mappedJobs = useMemo(() => {
+    if (!jobs) return [];
+    return jobs.map(j => ({
+      id: j.id,
+      title: j.title,
+      client: `Client ${j.client_id?.substring(0,4) || ''}`, // Mocks name since we don't fetch users
+      verified: true, // mock
+      budget: j.budget_max ? `PKR ${j.budget_min || 0} – ${j.budget_max}` : `PKR ${j.budget_min || 0}+`,
+      posted: new Date(j.created_at).toLocaleDateString(),
+      type: j.project_type === 'fixed_price' ? "Fixed Price" : "Hourly",
+      skills: j.required_skills?.map(s => s.tag || 'Skill').slice(0, 3) || ["Skill"],
+      desc: j.description || "",
+    }));
+  }, [jobs]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: C.bgPage }}>
       <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -141,7 +167,7 @@ export default function BrowseJobs({ onNavigate }) {
 
           {/* Results Count + Sort */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 20, fontWeight: 600, color: C.textDark, fontFamily: "'Manrope', sans-serif" }}>124 jobs found</span>
+            <span style={{ fontSize: 20, fontWeight: 600, color: C.textDark, fontFamily: "'Manrope', sans-serif" }}>{meta?.total || 0} jobs found</span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 14, color: "#74777F", fontFamily: "'Inter', sans-serif" }}>Sort by:</span>
               <select style={{ height: 36, padding: "0 40px 0 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontWeight: 600, color: "#000", fontFamily: "'Inter', sans-serif", cursor: "pointer", background: C.white }}>
@@ -154,9 +180,17 @@ export default function BrowseJobs({ onNavigate }) {
           </div>
 
           {/* 2×2 Job Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-            {JOB_CARDS.map(job => <JobCard key={job.id} job={job} onNavigate={onNavigate} />)}
-          </div>
+          {loading ? (
+            <div style={{ padding: 40, textAlign: "center", fontFamily: "'Inter', sans-serif" }}>Loading jobs...</div>
+          ) : error ? (
+            <div style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'Inter', sans-serif" }}>Error: {error}</div>
+          ) : mappedJobs.length === 0 ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#74777F", fontFamily: "'Inter', sans-serif" }}>No jobs found.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              {mappedJobs.map(job => <JobCard key={job.id} job={job} onNavigate={onNavigate} />)}
+            </div>
+          )}
 
           {/* Pagination */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, padding: "32px 0" }}>
