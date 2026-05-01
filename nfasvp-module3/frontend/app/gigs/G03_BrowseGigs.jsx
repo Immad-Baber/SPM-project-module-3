@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, StickyNote, VerifiedBadge, Stars, Btn } from "./shared";
-import { useGigs } from "../../hooks/useGigs";
+import { useGigs } from "../../src/hooks/useGigs";
 
 // ─── GIG CARD ────────────────────────────────────────────────────────────────
 function GigCard({ gig, onNavigate }) {
@@ -100,7 +100,12 @@ export default function BrowseGigs({ onNavigate }) {
         rating: g.avg_rating || "0.0",
         reviews: g.review_count || "0",
         title: g.title,
-        tags: g.required_skills?.map(s => s.tag || 'Skill').slice(0, 2) || ["Skill"],
+        tags: Array.isArray(g.required_skills) ? g.required_skills.map(s => {
+          if (typeof s === 'string') return s;
+          if (s && typeof s.name === 'string') return s.name;
+          if (s && typeof s.tag === 'string') return s.tag;
+          return 'Skill';
+        }).slice(0, 2) : ["Skill"],
         price: `PKR ${basicTier.price || 'N/A'}`,
         delivery: `${basicTier.delivery_days || '?'} days`,
         color: "#E8F4FD", 

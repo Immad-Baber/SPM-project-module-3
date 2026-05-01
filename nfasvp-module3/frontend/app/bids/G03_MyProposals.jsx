@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, Sidebar, StatusBadge, Btn } from "./fbs_shared";
-import { useMyProposals } from "../../hooks/useBids";
+import { useMyProposals } from "../../src/hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 10 - My Proposals

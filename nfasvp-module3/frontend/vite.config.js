@@ -7,7 +7,7 @@ export default defineConfig({
     proxy: {
       // Forward all /api/v1/* calls to the Express backend
       '/api/v1': {
-        target: 'http://localhost:4003',
+        target: 'http://127.0.0.1:4003',
         changeOrigin: true,
         secure: false,
       },

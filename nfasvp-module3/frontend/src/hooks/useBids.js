@@ -20,7 +20,7 @@ export function useMyProposals(filters = {}) {
     setLoading(true);
     setError(null);
     try {
-      const res = await bidApi.mine(filters);
+      const res = await bidApi.myBids(filters);
       if (res.success) {
         setBids(res.data || []);
         setMeta(res.meta || meta);

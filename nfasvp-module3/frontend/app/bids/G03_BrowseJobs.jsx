@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, Sidebar, SkillTag, StatusBadge, Btn } from "./fbs_shared";
-import { useJobs } from "../../hooks/useJobs";
+import { useJobs } from "../../src/hooks/useJobs";
 
 // ─── JOB CARD ────────────────────────────────────────────────────────────────
 function JobCard({ job, onNavigate }) {
@@ -104,7 +104,12 @@ export default function BrowseJobs({ onNavigate }) {
       budget: j.budget_max ? `PKR ${j.budget_min || 0} – ${j.budget_max}` : `PKR ${j.budget_min || 0}+`,
       posted: new Date(j.created_at).toLocaleDateString(),
       type: j.project_type === 'fixed_price' ? "Fixed Price" : "Hourly",
-      skills: j.required_skills?.map(s => s.tag || 'Skill').slice(0, 3) || ["Skill"],
+      skills: Array.isArray(j.required_skills) ? j.required_skills.map(s => {
+        if (typeof s === 'string') return s;
+        if (s && typeof s.name === 'string') return s.name;
+        if (s && typeof s.tag === 'string') return s.tag;
+        return 'Skill';
+      }).slice(0, 3) : ["Skill"],
       desc: j.description || "",
     }));
   }, [jobs]);
