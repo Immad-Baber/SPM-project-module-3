@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { C, Navbar, Sidebar, Btn, MILESTONES } from "./fbs_shared";
-import { useSubmitBid } from "../../src/hooks/useBids";
+import { useSubmitBid } from "../../hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 09 - Submit Proposal

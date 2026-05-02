@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, Sidebar, SkillTag, StatusBadge, Btn } from "./fbs_shared";
-import { useJobs } from "../../src/hooks/useJobs";
+import { useJobs } from "../../hooks/useJobs";
 
 // ─── JOB CARD ────────────────────────────────────────────────────────────────
 function JobCard({ job, onNavigate }) {

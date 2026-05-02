@@ -1,5 +1,5 @@
 import { C, Navbar, StickyNote, StatusBadge, Btn } from "./shared";
-import { useMyGigs } from "../../src/hooks/useGigs";
+import { useMyGigs } from "../../hooks/useGigs";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_MyGigs

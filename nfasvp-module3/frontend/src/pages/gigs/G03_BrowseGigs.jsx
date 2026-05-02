@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, StickyNote, VerifiedBadge, Stars, Btn } from "./shared";
-import { useGigs } from "../../src/hooks/useGigs";
+import { useGigs } from "../../hooks/useGigs";
 
 // ─── GIG CARD ────────────────────────────────────────────────────────────────
 function GigCard({ gig, onNavigate }) {
