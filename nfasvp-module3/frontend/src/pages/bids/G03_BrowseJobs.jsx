@@ -66,10 +66,9 @@ function JobCard({ job, onNavigate }) {
         </div>
       </div>
 
-      {/* Actions */}
       <div style={{ display: "flex", gap: 12 }}>
-        <Btn variant="outlined" style={{ flex: 1 }} onClick={() => onNavigate("jobdetail")}>View Details</Btn>
-        <Btn style={{ width: 117 }} onClick={() => onNavigate("submit")}>Apply Now</Btn>
+        <Btn variant="outlined" style={{ flex: 1 }} onClick={() => onNavigate("jobdetail", { id: job.id })}>View Details</Btn>
+        <Btn style={{ width: 117 }} onClick={() => onNavigate("submit", { jobId: job.id })}>Apply Now</Btn>
       </div>
     </div>
   );

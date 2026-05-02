@@ -7,7 +7,7 @@ function GigCard({ gig, onNavigate }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
-      onClick={() => onNavigate("detail")}
+      onClick={() => onNavigate("detail", { id: gig.id })}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{

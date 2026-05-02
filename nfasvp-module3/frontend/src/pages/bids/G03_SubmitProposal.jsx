@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { C, Navbar, Sidebar, Btn, MILESTONES } from "./fbs_shared";
 import { useSubmitBid } from "../../hooks/useBids";
+import { useJob } from "../../hooks/useJobs";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 09 - Submit Proposal
 // ══════════════════════════════════════════════════════════════════════════════
-export default function SubmitProposal({ onNavigate }) {
+export default function SubmitProposal({ onNavigate, params }) {
   const [bidAmount, setBidAmount] = useState("2000");
   const [duration, setDuration] = useState("2 months");
   const [bidType, setBidType] = useState("fixed");
@@ -16,8 +17,8 @@ export default function SubmitProposal({ onNavigate }) {
   const [newAmount, setNewAmount] = useState("");
   // API integration
   const { submitBid, loading: submitting, error: submitError } = useSubmitBid();
-  // Demo job ID — in a real flow this would come from navigation state / URL param
-  const DEMO_JOB_ID = "demo-job-001";
+  const { job, loading: jobLoading } = useJob(params?.jobId);
+  const targetJobId = params?.jobId || "demo-job-001";
 
   const totalBid = milestones.reduce((sum, m) => sum + parseInt(m.budget.replace(/\D/g, "") || 0), 0);
 
@@ -70,11 +71,15 @@ export default function SubmitProposal({ onNavigate }) {
             <div style={{ background: C.bgSidebar, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 11, color: "#747780", fontFamily: "'Inter', sans-serif", marginBottom: 2 }}>Applying for:</div>
-                <div style={{ fontSize: 16, fontWeight: 400, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>Senior React Developer for SaaS Dashboard</div>
+                <div style={{ fontSize: 16, fontWeight: 400, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>
+                  {jobLoading ? "Loading..." : job?.title || "Unknown Job"}
+                </div>
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 11, color: "#747780", fontFamily: "'Inter', sans-serif", marginBottom: 2 }}>Budget</div>
-                <div style={{ fontSize: 16, fontWeight: 400, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>$2,000</div>
+                <div style={{ fontSize: 16, fontWeight: 400, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>
+                  {jobLoading ? "..." : (job?.budget_max ? `$${job.budget_max}` : `$${job?.budget_min || 0}`)}
+                </div>
               </div>
             </div>
 
@@ -198,13 +203,17 @@ export default function SubmitProposal({ onNavigate }) {
               )}
               <Btn
                 onClick={async () => {
-                  const result = await submitBid(DEMO_JOB_ID, {
+                  if (!targetJobId) {
+                    alert("No job selected to submit a proposal for.");
+                    return;
+                  }
+                  const result = await submitBid(targetJobId, {
                     bid_amount: parseFloat(bidAmount) || 0,
                     cover_letter: coverLetter,
                     estimated_duration: duration,
                     bid_type: bidType,
                   });
-                  if (result) onNavigate("myproposals");
+                  if (result) onNavigate("proposals");
                 }}
                 style={{ height: 40, padding: "0 32px", fontSize: 14, opacity: submitting ? 0.7 : 1 }}
               >

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { C, Navbar, Sidebar, SkillTag, Btn, SectionCard, SectionHeading, MilestoneBadge, MILESTONES } from "./fbs_shared";
+import { useJob } from "../../hooks/useJobs";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 08 - Job Detail
 // ══════════════════════════════════════════════════════════════════════════════
-export default function JobDetail({ onNavigate }) {
+export default function JobDetail({ onNavigate, params }) {
   const [tab, setTab] = useState("overview");
+
+  const { job, loading, error } = useJob(params?.id);
+
 
   const REQUIREMENTS = [
     "5+ years of experience with React and modern JavaScript (ES6+) ecosystems",
@@ -13,6 +17,8 @@ export default function JobDetail({ onNavigate }) {
     "Experience building and consuming RESTful and GraphQL APIs at scale",
     "Proven track record with complex data visualization libraries such as D3.js or Recharts",
   ];
+
+  const jobSkills = job ? (Array.isArray(job.required_skills) ? job.required_skills.map(s => typeof s === 'string' ? s : s.name || s.tag) : ["React", "TypeScript"]) : [];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: "#FBF9FC" }}>
@@ -24,8 +30,19 @@ export default function JobDetail({ onNavigate }) {
 
         {/* Main */}
         <main style={{ flex: 1, overflowY: "auto", background: "#FBF9FC" }}>
-          <div style={{ maxWidth: 1200, padding: 24, display: "grid", gridTemplateColumns: "1fr 368px", gap: 24, alignItems: "start" }}>
-
+          {loading ? (
+            <div style={{ padding: 60, textAlign: "center", color: C.navy, fontSize: 18, fontFamily: "'Manrope', sans-serif" }}>
+              Loading job details...
+            </div>
+          ) : (error || !job) ? (
+            <div style={{ padding: 60, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+              <div style={{ fontSize: 48 }}>🔍</div>
+              <h2 style={{ margin: 0, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>{error || "Job Not Found"}</h2>
+              <p style={{ color: C.textBody, margin: 0, fontFamily: "'Inter', sans-serif" }}>Please select a job from the Browse Jobs page.</p>
+              <Btn onClick={() => onNavigate("browsejobs")} style={{ marginTop: 12 }}>Browse Jobs</Btn>
+            </div>
+          ) : (
+            <div style={{ maxWidth: 1200, padding: 24, display: "grid", gridTemplateColumns: "1fr 368px", gap: 24, alignItems: "start" }}>
             {/* ── LEFT COLUMN ── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
@@ -39,15 +56,19 @@ export default function JobDetail({ onNavigate }) {
               {/* Job Header */}
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: C.navy, fontFamily: "'Manrope', sans-serif", lineHeight: 1.3 }}>
-                  Senior React Developer for SaaS Dashboard
+                  {job.title}
                 </h1>
                 <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
                   {/* Client */}
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: C.navy, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontWeight: 700, fontSize: 13, fontFamily: "'Inter', sans-serif" }}>TC</div>
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: C.navy, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontWeight: 700, fontSize: 13, fontFamily: "'Inter', sans-serif" }}>
+                      {job.client_id ? "CL" : "TC"}
+                    </div>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontWeight: 600, fontSize: 14, color: C.navy, fontFamily: "'Inter', sans-serif" }}>TechCorp Inc.</span>
+                        <span style={{ fontWeight: 600, fontSize: 14, color: C.navy, fontFamily: "'Inter', sans-serif" }}>
+                          Client {job.client_id?.substring(0, 4) || 'TechCorp Inc.'}
+                        </span>
                         <span style={{ color: C.tealDark, fontSize: 13 }}>✓</span>
                       </div>
                       <div style={{ fontSize: 9, fontWeight: 700, color: "#747780", letterSpacing: "0.225px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif" }}>VERIFIED CLIENT</div>
@@ -56,7 +77,9 @@ export default function JobDetail({ onNavigate }) {
                   <div style={{ width: 1, height: 24, background: C.border }} />
                   <div>
                     <div style={{ fontSize: 11, color: "#747780", fontFamily: "'Inter', sans-serif" }}>Posted</div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: C.navy, fontFamily: "'Inter', sans-serif" }}>2 days ago</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: C.navy, fontFamily: "'Inter', sans-serif" }}>
+                      {new Date(job.created_at).toLocaleDateString()}
+                    </div>
                   </div>
                   <div style={{ width: 1, height: 24, background: C.border }} />
                   <div>
@@ -67,15 +90,15 @@ export default function JobDetail({ onNavigate }) {
 
                 {/* Skill Tags */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {["React", "TypeScript", "Node.js", "Figma"].map(s => <SkillTag key={s} label={s} />)}
+                  {jobSkills.map(s => <SkillTag key={s} label={s} />)}
                 </div>
               </div>
 
               {/* Project Overview */}
               <SectionCard>
                 <SectionHeading>Project Overview</SectionHeading>
-                <p style={{ margin: 0, fontSize: 14, color: C.textBody, lineHeight: 1.65, fontFamily: "'Inter', sans-serif" }}>
-                  We are looking for an expert Senior React Developer to lead the front-end development of our next-generation SaaS analytics dashboard. The ideal candidate has extensive experience in building scalable web applications with complex data visualizations. You will work closely with our design team, backend engineers, and product managers to deliver a world-class user experience for our enterprise clients.
+                <p style={{ margin: 0, fontSize: 14, color: C.textBody, lineHeight: 1.65, fontFamily: "'Inter', sans-serif", whiteSpace: "pre-wrap" }}>
+                  {job.description || "No description provided."}
                 </p>
               </SectionCard>
 
@@ -137,8 +160,12 @@ export default function JobDetail({ onNavigate }) {
                 {/* Budget */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 20 }}>
                   <span style={{ fontSize: 9, fontWeight: 600, color: "#747780", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif" }}>TOTAL BUDGET</span>
-                  <span style={{ fontSize: 24, fontWeight: 600, color: C.navy, fontFamily: "'Inter', sans-serif" }}>$2,000</span>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: "#747780", fontFamily: "'Inter', sans-serif" }}>Fixed Price Project</span>
+                  <span style={{ fontSize: 24, fontWeight: 600, color: C.navy, fontFamily: "'Inter', sans-serif" }}>
+                    {job.budget_max ? `PKR ${job.budget_min || 0} – ${job.budget_max}` : `PKR ${job.budget_min || 0}+`}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: "#747780", fontFamily: "'Inter', sans-serif" }}>
+                    {job.project_type === 'hourly' ? "Hourly Project" : "Fixed Price Project"}
+                  </span>
                 </div>
 
                 {/* Details */}
@@ -157,7 +184,7 @@ export default function JobDetail({ onNavigate }) {
 
                 {/* Action Buttons */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <Btn style={{ width: "100%", height: 44, justifyContent: "center" }} onClick={() => onNavigate("submit")}>
+                  <Btn style={{ width: "100%", height: 44, justifyContent: "center" }} onClick={() => onNavigate("submit", { jobId: job.id })}>
                     Submit a Proposal
                   </Btn>
                   <Btn variant="outlined" style={{ width: "100%", height: 44, justifyContent: "center" }}>
@@ -181,7 +208,8 @@ export default function JobDetail({ onNavigate }) {
               </div>
             </div>
           </div>
-        </main>
+        )}
+      </main>
       </div>
     </div>
   );

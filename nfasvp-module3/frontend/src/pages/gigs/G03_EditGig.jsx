@@ -1,11 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, Navbar, StickyNote, Btn } from "./shared";
+import { useGig, useUpdateGig } from "../../hooks/useGigs";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_EditGig
 // ══════════════════════════════════════════════════════════════════════════════
-export default function EditGig({ onNavigate }) {
+export default function EditGig({ onNavigate, params }) {
   const [activeTab, setActiveTab] = useState("Basic");
+  const gigId = params?.id;
+  const { gig, loading: loadingGig, error: gigError } = useGig(gigId);
+  const { updateGig, loading: updating } = useUpdateGig();
+
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const [deliveryDays, setDeliveryDays] = useState("");
+
+  useEffect(() => {
+    if (gig) {
+      setTitle(gig.title || "");
+      setCategory(gig.category_id || "");
+      if (gig.pricing_tiers && gig.pricing_tiers.length > 0) {
+        const tier = gig.pricing_tiers[0];
+        setPrice(tier.price || "");
+        setDeliveryDays(tier.delivery_days || "");
+      }
+    }
+  }, [gig]);
+
+  const handleUpdate = async () => {
+    if (!gigId) return;
+    const res = await updateGig(gigId, {
+      title,
+      category_id: "c001", // hardcoded category ID mapping
+      pricing_tiers: [
+        {
+          name: activeTab,
+          price: parseInt(price),
+          delivery_days: parseInt(deliveryDays),
+          revisions: 1,
+          features: ["Basic delivery"]
+        }
+      ]
+    });
+    if (res) onNavigate("mygigs");
+    else alert("Failed to update gig.");
+  };
 
   const fieldStyle = {
     width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`,
@@ -89,7 +129,7 @@ export default function EditGig({ onNavigate }) {
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="outlined" onClick={() => onNavigate("mygigs")}>Discard Changes</Btn>
-              <Btn onClick={() => onNavigate("mygigs")}>Save Changes</Btn>
+              <Btn onClick={handleUpdate} disabled={updating}>{updating ? "Saving..." : "Save Changes"}</Btn>
             </div>
           </div>
 
@@ -101,17 +141,21 @@ export default function EditGig({ onNavigate }) {
 
               {/* Section — Title & Category */}
               <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, padding: 18, boxShadow: "0 1px 2px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: 14 }}>
-                <div>
-                  <label style={labelStyle}>GIG TITLE</label>
-                  <input defaultValue={PREFILLED.title} style={fieldStyle} />
-                </div>
-                <div>
-                  <label style={labelStyle}>CATEGORY</label>
-                  <select style={{ ...fieldStyle }}>
-                    <option>{PREFILLED.category}</option>
-                    {["Graphic Design", "Content Writing", "Mobile Apps"].map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
+                {loadingGig ? <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13}}>Loading gig data...</div> : (
+                  <>
+                    <div>
+                      <label style={labelStyle}>GIG TITLE</label>
+                      <input value={title} onChange={e => setTitle(e.target.value)} style={fieldStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>CATEGORY</label>
+                      <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...fieldStyle }}>
+                        <option value="">Select Category</option>
+                        {["Graphic Design", "Content Writing", "Mobile Apps", "Web Development"].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Section — Thumbnail */}
@@ -179,13 +223,13 @@ export default function EditGig({ onNavigate }) {
                     <label style={{ fontSize: 9, color: "#64748B", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 4 }}>PRICE (PKR)</label>
                     <div style={{ position: "relative" }}>
                       <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#94A3B8", fontFamily: "'DM Sans', sans-serif" }}>₨</span>
-                      <input defaultValue={PREFILLED.pricing[activeTab]} style={{ ...fieldStyle, paddingLeft: 28 }} />
+                      <input value={price} onChange={e => setPrice(e.target.value)} type="number" style={{ ...fieldStyle, paddingLeft: 28 }} />
                     </div>
                   </div>
                   <div>
                     <label style={{ fontSize: 9, color: "#64748B", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 4 }}>DELIVERY TIME</label>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <input defaultValue={activeTab === "Basic" ? "3" : activeTab === "Standard" ? "5" : "10"} style={{ width: 60, padding: "10px 10px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 14, fontFamily: "'DM Sans', sans-serif" }} />
+                      <input value={deliveryDays} onChange={e => setDeliveryDays(e.target.value)} type="number" style={{ width: 60, padding: "10px 10px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 14, fontFamily: "'DM Sans', sans-serif" }} />
                       <span style={{ fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Days</span>
                     </div>
                   </div>

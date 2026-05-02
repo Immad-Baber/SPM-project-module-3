@@ -152,9 +152,9 @@ export default function MyGigs({ onNavigate }) {
                     <td style={{ padding: "14px 16px", fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{g.rating}</td>
                     <td style={{ padding: "14px 16px" }}>
                       <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                        <Btn small onClick={() => onNavigate("edit")}>Edit</Btn>
+                        <Btn small onClick={() => onNavigate("edit", { id: g.id })}>Edit</Btn>
                         <Btn small variant="outlined">{g.status === "Draft" ? "Publish" : "Pause"}</Btn>
-                        <Btn small variant="ghost" onClick={() => onNavigate("detail")}>View</Btn>
+                        <Btn small variant="ghost" onClick={() => onNavigate("detail", { id: g.id })}>View</Btn>
                         {g.status === "Draft" && <Btn small variant="danger">Delete</Btn>}
                       </div>
                     </td>

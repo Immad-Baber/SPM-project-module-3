@@ -73,10 +73,11 @@ async function request(path, opts = {}) {
   const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message =
-      json?.error ||
-      json?.message ||
-      `API error ${response.status}: ${response.statusText}`;
+    let message = json?.error || json?.message || `API error ${response.status}: ${response.statusText}`;
+    if (json?.details) {
+      message += " | Details: " + JSON.stringify(json.details);
+      console.error("API Validation Errors:", json.details);
+    }
     throw new Error(message);
   }
 

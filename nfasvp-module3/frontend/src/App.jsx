@@ -14,6 +14,8 @@ import JobDetail            from "./pages/bids/G03_JobDetail.jsx";
 import SubmitProposal       from "./pages/bids/G03_SubmitProposal.jsx";
 import MyProposals          from "./pages/bids/G03_MyProposals.jsx";
 import AcceptRejectProposal from "./pages/bids/G03_AcceptRejectProposal.jsx";
+import CreateJob            from "./pages/jobs/G03_CreateJob.jsx";
+import MyJobs               from "./pages/jobs/G03_MyJobs.jsx";
 
 // ── API Service Layer (backend integration) ───────────────────────────────────
 import { setAuthToken, loadStoredToken, checkHealth } from "./services/api.js";
@@ -37,27 +39,31 @@ const SCREENS = {
   submit:       SubmitProposal,
   myproposals:  MyProposals,
   acceptreject: AcceptRejectProposal,
+  createjob:    CreateJob,
+  myjobs:       MyJobs,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Home landing — pick a module to demo
 // ─────────────────────────────────────────────────────────────────────────────
-function Home({ onNavigate, backendStatus }) {
-  const gigs = [
-    { key: "browse",     label: "Browse Gigs",          icon: "🔍" },
-    { key: "detail",     label: "Gig Detail",           icon: "📄" },
+function Home({ onNavigate, backendStatus, role }) {
+  const freelancerOptions = [
     { key: "mygigs",     label: "My Gigs",              icon: "📋" },
     { key: "create",     label: "Create Gig",           icon: "➕" },
-    { key: "edit",       label: "Edit Gig",             icon: "✏️" },
+    { key: "categories", label: "Category Selection",   icon: "🗂️" },
+    { key: "browsejobs", label: "Browse Jobs",          icon: "💼" },
+    { key: "myproposals",label: "My Proposals",         icon: "📑" },
+  ];
+
+  const clientOptions = [
+    { key: "myjobs",     label: "My Jobs",              icon: "📋" },
+    { key: "createjob",  label: "Post a Job",           icon: "➕" },
+    { key: "browse",     label: "Browse Gigs",          icon: "🔍" },
     { key: "categories", label: "Category Selection",   icon: "🗂️" },
   ];
-  const jobs = [
-    { key: "browsejobs",   label: "Browse Jobs",              icon: "💼" },
-    { key: "jobdetail",    label: "Job Detail",               icon: "📄" },
-    { key: "submit",       label: "Submit Proposal",          icon: "📨" },
-    { key: "myproposals",  label: "My Proposals",             icon: "📑" },
-    { key: "acceptreject", label: "Accept / Reject Proposal", icon: "✅" },
-  ];
+
+  const activeOptions = role === "freelancer" ? freelancerOptions : clientOptions;
+
 
   const cardStyle = {
     background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10,
@@ -83,46 +89,38 @@ function Home({ onNavigate, backendStatus }) {
           <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: "-1px" }}>GigMarket</h1>
           <p style={{ margin: "6px 0 0", fontSize: 14, opacity: 0.6 }}>NFASVP · Module 3 – Gig & Proposal Management</p>
         </div>
-        {/* Backend connection status badge */}
-        <div style={{
-          background: st.bg, borderRadius: 8, padding: "8px 14px",
-          display: "flex", alignItems: "center", gap: 8,
-          fontFamily: "'DM Sans', sans-serif",
-        }}>
-          <span style={{
-            width: 8, height: 8, borderRadius: "50%", background: st.dot, display: "inline-block",
-            boxShadow: backendStatus === "online" ? `0 0 0 3px ${st.dot}33` : "none",
-          }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: st.text }}>{st.label}</span>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {/* Backend connection status badge */}
+          <div style={{
+            background: st.bg, borderRadius: 8, padding: "8px 14px",
+            display: "flex", alignItems: "center", gap: 8,
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: "50%", background: st.dot, display: "inline-block",
+              boxShadow: backendStatus === "online" ? `0 0 0 3px ${st.dot}33` : "none",
+            }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: st.text }}>{st.label}</span>
+          </div>
+          <button onClick={() => onNavigate("switch_role")} style={{
+            background: "#fff", border: "1px solid #E2E8F0", borderRadius: 8, padding: "8px 14px",
+            fontSize: 12, fontWeight: 600, color: "#0F172A", cursor: "pointer", fontFamily: "'DM Sans', sans-serif"
+          }}>
+            Switch Role
+          </button>
         </div>
       </div>
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px", display: "flex", flexDirection: "column", gap: 36 }}>
 
-        {/* Gigs */}
-        <section>
-          <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#0F172A" }}>🖥️ Gigs Module (G03)</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {gigs.map(({ key, label, icon }) => (
-              <div
-                key={key}
-                onClick={() => onNavigate(key)}
-                style={cardStyle}
-                onMouseOver={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
-              >
-                <span style={{ fontSize: 26 }}>{icon}</span>
-                <span style={{ fontWeight: 600, fontSize: 15, color: "#0F172A" }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
 
-        {/* Jobs / Bids */}
+        {/* Role Options */}
         <section>
-          <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#0F172A" }}>💼 Jobs / Bids Module (G03)</h2>
+          <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#0F172A", textTransform: "capitalize" }}>
+            {role === "freelancer" ? "👩‍💻 Freelancer Dashboard" : "🏢 Client Dashboard"}
+          </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {jobs.map(({ key, label, icon }) => (
+            {activeOptions.map(({ key, label, icon }) => (
               <div
                 key={key}
                 onClick={() => onNavigate(key)}
@@ -173,27 +171,60 @@ function Home({ onNavigate, backendStatus }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Role Selection Screen
+// ─────────────────────────────────────────────────────────────────────────────
+function RoleSelection({ onSelectRole }) {
+  const cardStyle = {
+    background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10,
+    padding: "30px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+    cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s",
+    fontFamily: "'DM Sans', sans-serif", width: "100%", textAlign: "center"
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#F9F9FF", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 40, color: "#0F172A", letterSpacing: "-1px" }}>Select Your Role</h1>
+      <div style={{ display: "flex", gap: 20, maxWidth: 600, width: "100%", padding: "0 20px" }}>
+        <div style={cardStyle} onClick={() => onSelectRole("freelancer")}
+             onMouseOver={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+             onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+          <span style={{ fontSize: 48 }}>👩‍💻</span>
+          <span style={{ fontWeight: 700, fontSize: 20, color: "#0F172A" }}>I am a Freelancer</span>
+          <span style={{ fontSize: 14, color: "#64748B" }}>Create gigs, browse jobs, and submit proposals.</span>
+        </div>
+        <div style={cardStyle} onClick={() => onSelectRole("client")}
+             onMouseOver={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+             onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+          <span style={{ fontSize: 48 }}>🏢</span>
+          <span style={{ fontWeight: 700, fontSize: 20, color: "#0F172A" }}>I am a Client</span>
+          <span style={{ fontSize: 14, color: "#64748B" }}>Browse gigs, post jobs, and accept proposals.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // App — manages active screen + initializes the API service layer
 // ─────────────────────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState("home");
+  const [screenParams, setScreenParams] = useState({});
   const [backendStatus, setBackendStatus] = useState("checking");
+  const [role, setRole] = useState(null);
 
-  // Initialize API layer on mount:
-  //   1. Restore any stored JWT from sessionStorage
-  //   2. Generate a dev JWT if none exists (uses VITE_DEV_JWT_SECRET from .env)
-  //   3. Ping /api/v1/health to check if backend is reachable
+  // Initialize API layer health check on mount
   useEffect(() => {
     async function initApi() {
+      // First try to restore existing token and role from session storage
       const stored = loadStoredToken();
-
-      if (!stored) {
+      if (stored) {
         try {
-          const devToken = await getDevToken("freelancer");
-          setAuthToken(devToken);
-        } catch (e) {
-          console.warn("[API] Could not generate dev token:", e.message);
-        }
+          const payloadStr = atob(stored.split('.')[1]);
+          const payload = JSON.parse(payloadStr);
+          if (payload.role) setRole(payload.role);
+        } catch(e) { /* ignore */ }
       }
 
       try {
@@ -203,18 +234,42 @@ export default function App() {
         setBackendStatus("offline");
       }
     }
-
     initApi();
   }, []);
 
-  const onNavigate = (key) => {
-    if (key in SCREENS || key === "home") setScreen(key);
+  const handleSelectRole = async (selectedRole) => {
+    try {
+      const devToken = await getDevToken(selectedRole);
+      setAuthToken(devToken);
+      setRole(selectedRole);
+      setScreen("home");
+    } catch (e) {
+      console.warn("[API] Could not generate dev token:", e.message);
+    }
   };
 
-  if (screen === "home") return <Home onNavigate={onNavigate} backendStatus={backendStatus} />;
+  const onNavigate = (key, params = {}) => {
+    if (key === "switch_role") {
+      setRole(null);
+      setScreen("home");
+      setScreenParams({});
+      sessionStorage.removeItem("nfasvp_token");
+      return;
+    }
+    if (key in SCREENS || key === "home") {
+      setScreen(key);
+      setScreenParams(params);
+    }
+  };
+
+  if (!role) {
+    return <RoleSelection onSelectRole={handleSelectRole} />;
+  }
+
+  if (screen === "home") return <Home onNavigate={onNavigate} backendStatus={backendStatus} role={role} />;
 
   const Screen = SCREENS[screen];
-  if (!Screen) return <Home onNavigate={onNavigate} backendStatus={backendStatus} />;
+  if (!Screen) return <Home onNavigate={onNavigate} backendStatus={backendStatus} role={role} />;
 
-  return <Screen onNavigate={onNavigate} />;
+  return <Screen onNavigate={onNavigate} params={screenParams} />;
 }

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { C, Navbar, StickyNote, Btn } from "./shared";
+import { useCreateGig } from "../../hooks/useGigs";
+import { useCategories } from "../../hooks/useCategories";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_CreateGig
@@ -7,6 +9,56 @@ import { C, Navbar, StickyNote, Btn } from "./shared";
 export default function CreateGig({ onNavigate }) {
   const [step, setStep] = useState(1);
   const [activeTab, setActiveTab] = useState("Basic");
+
+  // Form State
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const [deliveryDays, setDeliveryDays] = useState("3");
+
+  const { createGig, loading } = useCreateGig();
+  const { categories } = useCategories();
+
+  const handlePublish = async () => {
+    const parsedPrice = Number(price);
+    const parsedDeliveryDays = Number(deliveryDays);
+
+    if (!title || !price || !category) {
+      alert("Please fill in Title, Category, and Price.");
+      return;
+    }
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      alert("Please enter a valid price greater than 0.");
+      return;
+    }
+    
+    // Map activeTab ("Basic", "Standard", "Premium") to tier enum expected by backend
+    const tierName = activeTab.toLowerCase();
+    
+    const res = await createGig({
+      title,
+      description: description || "No description provided.",
+      category_id: category,
+      status: "live",
+      pricing_tiers: [
+        {
+          tier: tierName,
+          package_name: `${activeTab} Package`,
+          description: description || "Standard service package.",
+          price: parsedPrice,
+          delivery_days: Number.isFinite(parsedDeliveryDays) ? parsedDeliveryDays : 3,
+          revisions: "1",
+          deliverables: ["Standard deliverable"]
+        }
+      ]
+    });
+    if (res) {
+      onNavigate("mygigs");
+    } else {
+      alert("Failed to create gig. Please check your inputs or try again.");
+    }
+  };
 
   const STEPS = ["Overview", "Pricing", "Description", "Publish"];
 
@@ -73,7 +125,7 @@ export default function CreateGig({ onNavigate }) {
             {/* Gig Title */}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label style={labelStyle}>GIG TITLE</label>
-              <input placeholder='e.g. I will design a modern minimalist brand identity' style={fieldStyle} />
+              <input value={title} onChange={e => setTitle(e.target.value)} placeholder='e.g. I will design a modern minimalist brand identity' style={fieldStyle} />
               <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Keep it clear and professional. Max 80 characters.</span>
             </div>
 
@@ -81,9 +133,9 @@ export default function CreateGig({ onNavigate }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
                 <label style={labelStyle}>CATEGORY</label>
-                <select style={{ ...fieldStyle }}>
-                  <option>Select Category</option>
-                  {["Web Development", "Graphic Design", "Content Writing", "Mobile Apps", "Data & Analytics"].map(c => <option key={c}>{c}</option>)}
+                <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...fieldStyle }}>
+                  <option value="">Select Category</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
@@ -115,6 +167,7 @@ export default function CreateGig({ onNavigate }) {
               <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Description</h3>
               <label style={labelStyle}>GIG DESCRIPTION</label>
               <textarea
+                value={description} onChange={e => setDescription(e.target.value)}
                 placeholder="Briefly describe your gig to potential buyers. Highlight what makes your service unique and why they should choose you."
                 rows={4}
                 style={{ ...fieldStyle, resize: "vertical" }}
@@ -146,7 +199,7 @@ export default function CreateGig({ onNavigate }) {
             <Btn variant="ghost" onClick={() => onNavigate("browse")}>Cancel</Btn>
             <div style={{ display: "flex", gap: 12 }}>
               <Btn variant="outlined" onClick={() => onNavigate("mygigs")}>Save as Draft</Btn>
-              <Btn onClick={() => onNavigate("mygigs")}>Publish Gig →</Btn>
+              <Btn onClick={handlePublish} disabled={loading}>{loading ? "Publishing..." : "Publish Gig →"}</Btn>
             </div>
           </div>
         </div>
@@ -178,12 +231,12 @@ export default function CreateGig({ onNavigate }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <div>
                 <label style={{ ...labelStyle, color: C.textSecondary }}>PRICE PKR</label>
-                <input placeholder="e.g. 5000" style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" }} />
+                <input value={price} onChange={e => setPrice(e.target.value)} type="number" placeholder="e.g. 5000" style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ ...labelStyle, color: C.textSecondary }}>DELIVERY DAYS</label>
-                <select style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                  {[1, 2, 3, 5, 7, 10, 14].map(d => <option key={d}>{d} Days</option>)}
+                <select value={deliveryDays} onChange={e => setDeliveryDays(e.target.value)} style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  {[1, 2, 3, 5, 7, 10, 14].map(d => <option key={d} value={d}>{d} Days</option>)}
                 </select>
               </div>
               <div>
@@ -212,7 +265,7 @@ export default function CreateGig({ onNavigate }) {
             <Btn variant="ghost" onClick={() => onNavigate("browse")}>Cancel</Btn>
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="outlined" small onClick={() => onNavigate("mygigs")}>Save as Draft</Btn>
-              <Btn small onClick={() => onNavigate("mygigs")}>Publish Gig</Btn>
+              <Btn small onClick={handlePublish} disabled={loading}>Publish Gig</Btn>
             </div>
           </div>
         </div>
