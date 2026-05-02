@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, Sidebar, StatusBadge, Btn } from "./fbs_shared";
-import { useMyProposals } from "../../src/hooks/useBids";
+import { useMyProposals } from "../../hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 10 - My Proposals
@@ -11,9 +11,9 @@ export default function MyProposals({ onNavigate }) {
 
   const STATS = [
     { label: "Total Submitted", value: "12", color: C.navy },
-    { label: "Pending Review",  value: "5",  color: "#D97706" },
-    { label: "Accepted",        value: "4",  color: "#0D9488" },
-    { label: "Rejected",        value: "3",  color: "#DC2626" },
+    { label: "Pending Review", value: "5", color: "#D97706" },
+    { label: "Accepted", value: "4", color: "#0D9488" },
+    { label: "Rejected", value: "3", color: "#DC2626" },
   ];
 
   const apiStatusFilter = activeTab === "All" ? "" : activeTab.toLowerCase();
@@ -24,7 +24,7 @@ export default function MyProposals({ onNavigate }) {
     return bids.map(b => ({
       id: b.id,
       job: b.job?.title || "Unknown Job",
-      client: `Client ${b.job?.client_id?.substring(0,4) || ''}`,
+      client: `Client ${b.job?.client_id?.substring(0, 4) || ''}`,
       amount: `PKR ${b.bid_amount}`,
       date: new Date(b.submitted_at || b.created_at).toLocaleDateString(),
       status: b.status.charAt(0).toUpperCase() + b.status.slice(1)
@@ -61,12 +61,12 @@ export default function MyProposals({ onNavigate }) {
           {/* Nav Items */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
             {[
-              { icon: "🏠", label: "Overview",     key: "overview"   },
-              { icon: "🔍", label: "Browse Jobs",  key: "browse"     },
-              { icon: "📋", label: "My Proposals", key: "proposals"  },
-              { icon: "💬", label: "Messages",     key: "messages"   },
-              { icon: "📊", label: "Analytics",    key: "analytics"  },
-              { icon: "⚙️", label: "Settings",     key: "settings"   },
+              { icon: "🏠", label: "Overview", key: "overview" },
+              { icon: "🔍", label: "Browse Jobs", key: "browse" },
+              { icon: "📋", label: "My Proposals", key: "proposals" },
+              { icon: "💬", label: "Messages", key: "messages" },
+              { icon: "📊", label: "Analytics", key: "analytics" },
+              { icon: "⚙️", label: "Settings", key: "settings" },
             ].map(item => {
               const isActive = item.key === "proposals";
               return (
@@ -99,9 +99,9 @@ export default function MyProposals({ onNavigate }) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18 }}>
             {[
               { label: "Total Submitted", value: meta?.total || 0, color: C.navy },
-              { label: "Pending Review",  value: "-",  color: "#D97706" }, // To get actual grouped counts, you'd need an aggregate endpoint
-              { label: "Accepted",        value: "-",  color: "#0D9488" },
-              { label: "Rejected",        value: "-",  color: "#DC2626" },
+              { label: "Pending Review", value: "-", color: "#D97706" }, // To get actual grouped counts, you'd need an aggregate endpoint
+              { label: "Accepted", value: "-", color: "#0D9488" },
+              { label: "Rejected", value: "-", color: "#DC2626" },
             ].map(s => (
               <div key={s.label} style={{
                 background: C.bgSidebar, border: "1px solid rgba(196,198,208,0.4)",

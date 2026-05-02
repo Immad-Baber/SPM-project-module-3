@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { C, Navbar, Sidebar, Btn, MilestoneBadge, MILESTONES } from "./fbs_shared";
-import { useAcceptBid, useRejectBid, useWithdrawBid } from "../../src/hooks/useBids";
+import { useAcceptBid, useRejectBid, useWithdrawBid } from "../../hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 11 - Accept / Reject Proposal
