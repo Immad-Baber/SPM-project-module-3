@@ -75,7 +75,7 @@ export async function generateDevToken(role = 'freelancer', overrides = {}) {
   const now = Math.floor(Date.now() / 1000);
 
   const payload = {
-    id: overrides.id || 'dev-user-001',
+    id: overrides.id || 'aaaaaaaa-0000-0000-0000-000000000001',
     uuid: overrides.uuid || 'aaaaaaaa-0000-0000-0000-000000000001',
     role,
     email: overrides.email || `dev-${role}@gigmarket.local`,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, Navbar, Sidebar, Btn, MILESTONES } from "./fbs_shared";
+import { useSubmitBid } from "../../src/hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 09 - Submit Proposal
@@ -13,6 +14,10 @@ export default function SubmitProposal({ onNavigate }) {
   const [newTitle, setNewTitle] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newAmount, setNewAmount] = useState("");
+  // API integration
+  const { submitBid, loading: submitting, error: submitError } = useSubmitBid();
+  // Demo job ID — in a real flow this would come from navigation state / URL param
+  const DEMO_JOB_ID = "demo-job-001";
 
   const totalBid = milestones.reduce((sum, m) => sum + parseInt(m.budget.replace(/\D/g, "") || 0), 0);
 
@@ -187,9 +192,23 @@ export default function SubmitProposal({ onNavigate }) {
 
             {/* ── Form Actions ── */}
             <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 16, padding: "16px 0" }}>
-              <Btn variant="ghost" onClick={() => onNavigate("detail")} style={{ fontSize: 14 }}>Cancel</Btn>
-              <Btn onClick={() => onNavigate("proposals")} style={{ height: 40, padding: "0 32px", fontSize: 14 }}>
-                Submit Proposal →
+              <Btn variant="ghost" onClick={() => onNavigate("jobdetail")} style={{ fontSize: 14 }}>Cancel</Btn>
+              {submitError && (
+                <span style={{ fontSize: 12, color: "#DC2626", fontFamily: "'Inter', sans-serif" }}>{submitError}</span>
+              )}
+              <Btn
+                onClick={async () => {
+                  const result = await submitBid(DEMO_JOB_ID, {
+                    bid_amount: parseFloat(bidAmount) || 0,
+                    cover_letter: coverLetter,
+                    estimated_duration: duration,
+                    bid_type: bidType,
+                  });
+                  if (result) onNavigate("myproposals");
+                }}
+                style={{ height: 40, padding: "0 32px", fontSize: 14, opacity: submitting ? 0.7 : 1 }}
+              >
+                {submitting ? "Submitting…" : "Submit Proposal →"}
               </Btn>
             </div>
           </div>

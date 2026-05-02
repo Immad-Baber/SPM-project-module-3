@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 
 // ── Gigs screens ──────────────────────────────────────────────────────────────
-import BrowseGigs        from "../app/gigs/G03_BrowseGigs.jsx";
-import GigDetail         from "../app/gigs/G03_GigDetail.jsx";
-import MyGigs            from "../app/gigs/G03_MyGigs.jsx";
-import CreateGig         from "../app/gigs/G03_CreateGig.jsx";
-import EditGig           from "../app/gigs/G03_EditGig.jsx";
-import CategorySelection from "../app/gigs/G03_CategorySelection.jsx";
+import BrowseGigs        from "./pages/gigs/G03_BrowseGigs.jsx";
+import GigDetail         from "./pages/gigs/G03_GigDetail.jsx";
+import MyGigs            from "./pages/gigs/G03_MyGigs.jsx";
+import CreateGig         from "./pages/gigs/G03_CreateGig.jsx";
+import EditGig           from "./pages/gigs/G03_EditGig.jsx";
+import CategorySelection from "./pages/gigs/G03_CategorySelection.jsx";
 
 // ── Bids / Jobs screens ───────────────────────────────────────────────────────
-import BrowseJobs           from "../app/bids/G03_BrowseJobs.jsx";
-import JobDetail            from "../app/bids/G03_JobDetail.jsx";
-import SubmitProposal       from "../app/bids/G03_SubmitProposal.jsx";
-import MyProposals          from "../app/bids/G03_MyProposals.jsx";
-import AcceptRejectProposal from "../app/bids/G03_AcceptRejectProposal.jsx";
+import BrowseJobs           from "./pages/bids/G03_BrowseJobs.jsx";
+import JobDetail            from "./pages/bids/G03_JobDetail.jsx";
+import SubmitProposal       from "./pages/bids/G03_SubmitProposal.jsx";
+import MyProposals          from "./pages/bids/G03_MyProposals.jsx";
+import AcceptRejectProposal from "./pages/bids/G03_AcceptRejectProposal.jsx";
 
 // ── API Service Layer (backend integration) ───────────────────────────────────
 import { setAuthToken, loadStoredToken, checkHealth } from "./services/api.js";

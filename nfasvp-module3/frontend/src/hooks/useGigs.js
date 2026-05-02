@@ -51,7 +51,7 @@ export function useGig(gigId) {
     if (!gigId) return;
     setLoading(true);
     setError(null);
-    gigApi.get(gigId)
+    gigApi.getById(gigId)
       .then(res => {
         if (res.success) setGig(res.data);
         else setError(res.error || 'Gig not found');
@@ -74,7 +74,7 @@ export function useMyGigs(filters = {}) {
     setLoading(true);
     setError(null);
     try {
-      const res = await gigApi.mine(filters);
+      const res = await gigApi.myGigs(filters);
       if (res.success) {
         setGigs(res.data || []);
         setMeta(res.meta || meta);

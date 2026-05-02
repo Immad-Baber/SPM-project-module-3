@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { bidApi } from '../services/api';
+import { bidApi, jobApi } from '../services/api';
 
 /* ─── Freelancer — my proposals ─────────────────────────────────────────────── */
 export function useMyProposals(filters = {}) {
@@ -51,7 +51,8 @@ export function useJobBids(jobId) {
     setLoading(true);
     setError(null);
     try {
-      const res = await bidApi.listForJob(jobId);
+      // uses jobApi.getBids (GET /api/v1/jobs/:id/bids)
+      const res = await jobApi.getBids(jobId);
       if (res.success) setBids(res.data || []);
       else setError(res.error || 'Failed to load bids');
     } catch (e) {
@@ -72,12 +73,17 @@ export function useSubmitBid() {
   const [error,     setError]     = useState(null);
   const [submitted, setSubmitted] = useState(null);
 
+  /**
+   * @param {string} jobId
+   * @param {{ bid_amount, cover_letter, estimated_duration }} bidData
+   */
   const submitBid = async (jobId, bidData) => {
     setLoading(true);
     setError(null);
     setSubmitted(null);
     try {
-      const res = await bidApi.submit(jobId, bidData);
+      // bidApi.submit expects a single body object: { job_id, bid_amount, … }
+      const res = await bidApi.submit({ job_id: jobId, ...bidData });
       if (res.success) {
         setSubmitted(res.data);
         return res.data;
@@ -101,12 +107,17 @@ export function useAcceptBid() {
   const [error,   setError]   = useState(null);
   const [project, setProject] = useState(null);
 
-  const acceptBid = async (jobId, bidId) => {
+  /**
+   * @param {string} bidId
+   * @param {string} jobId  – required by backend to auto-reject other bids
+   */
+  const acceptBid = async (bidId, jobId) => {
     setLoading(true);
     setError(null);
     setProject(null);
     try {
-      const res = await bidApi.accept(jobId, bidId);
+      // bidApi.accept(bidId, jobId) → PUT /api/v1/bids/:id/accept { job_id }
+      const res = await bidApi.accept(bidId, jobId);
       if (res.success) {
         setProject(res.data?.project || res.data);
         return res.data;
@@ -129,11 +140,15 @@ export function useRejectBid() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  const rejectBid = async (jobId, bidId) => {
+  /**
+   * @param {string} bidId
+   */
+  const rejectBid = async (bidId) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await bidApi.reject(jobId, bidId);
+      // bidApi.reject(bidId) → PUT /api/v1/bids/:id/reject
+      const res = await bidApi.reject(bidId);
       if (res.success) return true;
       setError(res.error || 'Failed to reject bid');
       return false;

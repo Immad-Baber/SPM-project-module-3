@@ -17,7 +17,7 @@ export function useCategories() {
 
   useEffect(() => {
     setLoading(true);
-    categoryApi.list()
+    categoryApi.getAll()
       .then(res => {
         if (res.success) setCategories(res.data || []);
         else setError(res.error || 'Failed to load categories');
@@ -45,7 +45,7 @@ export function useSearch() {
     setError(null);
     setQuery(searchQuery);
     try {
-      const res = await searchApi.search(searchQuery, filters);
+      const res = await searchApi.global(searchQuery, filters);
       if (res.success) setResults(res.data || { gigs: [], jobs: [] });
       else setError(res.error || 'Search failed');
     } catch (e) {

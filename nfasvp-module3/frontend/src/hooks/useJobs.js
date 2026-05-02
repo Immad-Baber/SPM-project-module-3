@@ -49,7 +49,7 @@ export function useJob(jobId) {
   useEffect(() => {
     if (!jobId) return;
     setLoading(true);
-    jobApi.get(jobId)
+    jobApi.getById(jobId)
       .then(res => {
         if (res.success) setJob(res.data);
         else setError(res.error || 'Job not found');
@@ -72,7 +72,7 @@ export function useMyJobs(filters = {}) {
     setLoading(true);
     setError(null);
     try {
-      const res = await jobApi.mine(filters);
+      const res = await jobApi.dashboard(filters);
       if (res.success) {
         setJobs(res.data || []);
         setMeta(res.meta || meta);

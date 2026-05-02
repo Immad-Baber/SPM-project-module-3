@@ -1,25 +1,32 @@
 import { C, Navbar, StickyNote, StatusBadge, Btn } from "./shared";
-
-const MY_GIGS = [
-  { id: 1, title: "React Website Development",  category: "Web Dev", status: "Live",  price: "PKR 5,000",  orders: 12, rating: "4.9 ⭐", thumb: "💻" },
-  { id: 2, title: "Professional Logo Design",    category: "Design",  status: "Live",  price: "PKR 3,000",  orders: 4,  rating: "4.7 ⭐", thumb: "🎨" },
-  { id: 3, title: "SEO Blog Posts & Articles",   category: "Writing", status: "Draft", price: "PKR 2,000",  orders: 0,  rating: "—",      thumb: "✍️" },
-];
-
-const RECENT_ORDERS = [
-  { id: "#ORD-001", gig: "React Website Development", client: "Sara Ahmed",  pkg: "Standard", status: "In Progress", date: "Apr 18, 2026" },
-  { id: "#ORD-002", gig: "Professional Logo Design",   client: "Bilal Hassan", pkg: "Basic",    status: "Completed",  date: "Apr 12, 2026" },
-];
+import { useMyGigs } from "../../src/hooks/useGigs";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_MyGigs
 // ══════════════════════════════════════════════════════════════════════════════
 export default function MyGigs({ onNavigate }) {
+  const { gigs: apiGigs, loading, error, meta } = useMyGigs();
+
+  // Map API response to table row format
+  const MY_GIGS = apiGigs.map(g => {
+    const tier = g.pricing_tiers?.[0] || {};
+    return {
+      id: g.id,
+      title: g.title,
+      category: g.category?.name || "General",
+      status: g.is_active ? "Live" : "Draft",
+      price: tier.price ? `PKR ${tier.price}` : "—",
+      orders: 0, // order counts not in gig list endpoint
+      rating: g.avg_rating ? `${g.avg_rating} ⭐` : "—",
+      thumb: "💻",
+    };
+  });
+
   const STATS = [
-    { label: "TOTAL GIGS",   value: "5",      color: C.textPrimary },
-    { label: "LIVE",         value: "3",      color: C.green, dot: true },
-    { label: "TOTAL ORDERS", value: "18",     color: C.textPrimary },
-    { label: "AVG RATING",   value: "4.8 ⭐", color: C.textPrimary },
+    { label: "TOTAL GIGS",   value: meta?.total ?? MY_GIGS.length, color: C.textPrimary },
+    { label: "LIVE",         value: MY_GIGS.filter(g => g.status === "Live").length, color: C.green, dot: true },
+    { label: "TOTAL ORDERS", value: "—",     color: C.textPrimary },
+    { label: "AVG RATING",   value: "—", color: C.textPrimary },
   ];
 
   return (
@@ -122,6 +129,13 @@ export default function MyGigs({ onNavigate }) {
                   ))}
                 </tr>
               </thead>
+              {loading ? (
+                <tbody><tr><td colSpan={7} style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>Loading gigs…</td></tr></tbody>
+              ) : error ? (
+                <tbody><tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'DM Sans', sans-serif" }}>Error: {error}</td></tr></tbody>
+              ) : MY_GIGS.length === 0 ? (
+                <tbody><tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>No gigs yet. Create your first gig!</td></tr></tbody>
+              ) : (
               <tbody>
                 {MY_GIGS.map((g, idx) => (
                   <tr key={g.id} style={{ background: idx % 2 === 1 ? "rgba(246,243,245,0.2)" : C.white, borderTop: `1px solid ${C.border}` }}>
@@ -147,6 +161,7 @@ export default function MyGigs({ onNavigate }) {
                   </tr>
                 ))}
               </tbody>
+              )}
             </table>
           </div>
 
@@ -167,28 +182,13 @@ export default function MyGigs({ onNavigate }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {RECENT_ORDERS.map((o, i) => (
-                    <tr key={o.id} style={{ borderTop: i > 0 ? `1px solid ${C.border}` : "none" }}>
-                      <td style={{ padding: "14px 16px", fontWeight: 700, fontSize: 14, color: C.black, fontFamily: "'DM Sans', sans-serif" }}>{o.id}</td>
-                      <td style={{ padding: "14px 16px", fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{o.gig}</td>
-                      <td style={{ padding: "14px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 24, height: 24, borderRadius: "50%", background: C.badgeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>{o.client[0]}</div>
-                          <span style={{ fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{o.client}</span>
-                        </div>
+                  {[].length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ padding: "24px", textAlign: "center", color: C.textMuted, fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+                        No recent orders. Orders will appear here once clients purchase your gigs.
                       </td>
-                      <td style={{ padding: "14px 16px", fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{o.pkg}</td>
-                      <td style={{ padding: "14px 16px" }}>
-                        <span style={{
-                          background: o.status === "Completed" ? C.greenBg : C.badgeBg,
-                          color: o.status === "Completed" ? C.greenDark : C.badgeText,
-                          padding: "4px 10px", borderRadius: 3, fontSize: 11, fontWeight: 700,
-                          textTransform: "uppercase", letterSpacing: "0.4px", fontFamily: "'DM Sans', sans-serif",
-                        }}>{o.status}</span>
-                      </td>
-                      <td style={{ padding: "14px 16px", fontSize: 13, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{o.date}</td>
                     </tr>
-                  ))}
+                  ) : null}
                 </tbody>
               </table>
             </div>

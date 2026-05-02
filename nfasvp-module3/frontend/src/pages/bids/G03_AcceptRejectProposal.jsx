@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, Navbar, Sidebar, Btn, MilestoneBadge, MILESTONES } from "./fbs_shared";
+import { useAcceptBid, useRejectBid, useWithdrawBid } from "../../src/hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 11 - Accept / Reject Proposal
@@ -7,6 +8,12 @@ import { C, Navbar, Sidebar, Btn, MilestoneBadge, MILESTONES } from "./fbs_share
 export default function AcceptRejectProposal({ onNavigate }) {
   const [showFullLetter, setShowFullLetter] = useState(false);
   const [decision, setDecision] = useState(null); // "accepted" | "rejected" | null
+  // API hooks — demo IDs (in real flow come from navigation/context)
+  const DEMO_BID_ID = "demo-bid-001";
+  const DEMO_JOB_ID = "demo-job-001";
+  const { acceptBid, loading: accepting, error: acceptError } = useAcceptBid();
+  const { rejectBid, loading: rejecting, error: rejectError } = useRejectBid();
+  const { withdrawBid, loading: withdrawing } = useWithdrawBid();
 
   const COVER_LETTER = "I am excited to apply for the Senior React Developer position at TechCorp Inc. With over 7 years of experience building enterprise-grade SaaS dashboards, I bring deep expertise in React, TypeScript, and complex data visualization using D3.js and Recharts.\n\nIn my most recent role at DataViz Corp, I led the front-end architecture of a real-time analytics platform serving 50,000+ daily users. I am confident I can deliver a world-class dashboard that exceeds your expectations.\n\nI am available to start immediately and would love to discuss your project in detail.";
 
@@ -150,24 +157,38 @@ export default function AcceptRejectProposal({ onNavigate }) {
                 <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
                   <p style={{ margin: "0 0 8px", fontSize: 12, color: "#747780", fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>Client Actions Available:</p>
 
-                  <button onClick={() => setDecision("accepted")} style={{
-                    width: "100%", height: 44, background: decision === "accepted" ? C.teal : C.teal,
-                    border: "none", borderRadius: 8, fontSize: 14, fontWeight: 700,
-                    color: C.navy, cursor: "pointer", fontFamily: "'Inter', sans-serif",
-                    opacity: decision === "rejected" ? 0.5 : 1,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}>
-                    ✓ Accept Proposal
+                  <button
+                    onClick={async () => {
+                      const ok = await acceptBid(DEMO_BID_ID, DEMO_JOB_ID);
+                      if (ok) setDecision("accepted");
+                    }}
+                    disabled={accepting || rejecting || decision === "rejected"}
+                    style={{
+                      width: "100%", height: 44, background: C.teal,
+                      border: "none", borderRadius: 8, fontSize: 14, fontWeight: 700,
+                      color: C.navy, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                      opacity: (decision === "rejected" || rejecting) ? 0.5 : 1,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    {accepting ? "Accepting…" : "✓ Accept Proposal"}
                   </button>
 
-                  <button onClick={() => setDecision("rejected")} style={{
-                    width: "100%", height: 44, background: "transparent",
-                    border: "2px solid #DC2626", borderRadius: 8, fontSize: 14, fontWeight: 700,
-                    color: "#DC2626", cursor: "pointer", fontFamily: "'Inter', sans-serif",
-                    opacity: decision === "accepted" ? 0.5 : 1,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}>
-                    ✕ Reject Proposal
+                  <button
+                    onClick={async () => {
+                      const ok = await rejectBid(DEMO_BID_ID);
+                      if (ok) setDecision("rejected");
+                    }}
+                    disabled={accepting || rejecting || decision === "accepted"}
+                    style={{
+                      width: "100%", height: 44, background: "transparent",
+                      border: "2px solid #DC2626", borderRadius: 8, fontSize: 14, fontWeight: 700,
+                      color: "#DC2626", cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                      opacity: (decision === "accepted" || accepting) ? 0.5 : 1,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    {rejecting ? "Rejecting…" : "✕ Reject Proposal"}
                   </button>
 
                   <button style={{
@@ -178,9 +199,21 @@ export default function AcceptRejectProposal({ onNavigate }) {
                     ↩ Request Revision
                   </button>
 
-                  <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, display: "flex", justifyContent: "center" }}>
-                    <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#DC2626", fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
-                      Withdraw Proposal
+                  <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    {(acceptError || rejectError) && (
+                      <span style={{ fontSize: 11, color: "#DC2626", fontFamily: "'Inter', sans-serif" }}>
+                        {acceptError || rejectError}
+                      </span>
+                    )}
+                    <button
+                      onClick={async () => {
+                        await withdrawBid(DEMO_BID_ID);
+                        onNavigate("myproposals");
+                      }}
+                      disabled={withdrawing}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#DC2626", fontWeight: 600, fontFamily: "'Inter', sans-serif" }}
+                    >
+                      {withdrawing ? "Withdrawing…" : "Withdraw Proposal"}
                     </button>
                   </div>
                 </div>
