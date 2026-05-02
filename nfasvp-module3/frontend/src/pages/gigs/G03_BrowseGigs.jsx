@@ -59,8 +59,11 @@ function GigCard({ gig, onNavigate }) {
 
         {/* Footer */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 4 }}>
-          <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>⏱ {gig.delivery}</span>
-          <span style={{ fontWeight: 700, fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{gig.price}</span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>⏱ {gig.delivery}</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{gig.price}</span>
+          </div>
+          <Btn small onClick={(e) => { e.stopPropagation(); onNavigate("detail", { id: gig.id }); }}>Apply Now</Btn>
         </div>
       </div>
     </div>
@@ -70,22 +73,45 @@ function GigCard({ gig, onNavigate }) {
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_BrowseGigs
 // ══════════════════════════════════════════════════════════════════════════════
-export default function BrowseGigs({ onNavigate }) {
+export default function BrowseGigs({ onNavigate, role }) {
   const [activeFilter, setActiveFilter] = useState("All");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
   const [delivery, setDelivery] = useState("");
   const [search, setSearch] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({});
+
+  const [page, setPage] = useState(1);
 
   const filters = useMemo(() => {
-    const f = {};
-    if (activeFilter !== "All") f.category_id = activeFilter; // Not real category ID, but just for demo
-    if (budgetMin) f.min_price = budgetMin;
-    if (budgetMax) f.max_price = budgetMax;
-    return f;
-  }, [activeFilter, budgetMin, budgetMax]);
+    return { 
+      page, 
+      q: search, 
+      ...appliedFilters 
+    };
+  }, [page, search, appliedFilters]);
 
-  const { gigs, loading, error, meta } = useGigs(filters);
+  const { gigs, loading, error, meta, refresh } = useGigs(filters);
+
+  const handleApplyFilters = () => {
+    const f = {};
+    if (activeFilter !== "All") f.category_id = activeFilter;
+    if (budgetMin) f.price_min = budgetMin;
+    if (budgetMax) f.price_max = budgetMax;
+    if (delivery && delivery !== "Any") f.max_delivery_days = delivery.replace(/\D/g, "");
+    setAppliedFilters(f);
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setBudgetMin("");
+    setBudgetMax("");
+    setDelivery("Any");
+    setActiveFilter("All");
+    setSearch("");
+    setAppliedFilters({});
+    setPage(1);
+  };
 
   const FILTERS = ["All", "Web Dev", "Design", "Writing", "Marketing", "Data", "Video"];
 
@@ -102,6 +128,7 @@ export default function BrowseGigs({ onNavigate }) {
         title: g.title,
         tags: Array.isArray(g.required_skills) ? g.required_skills.map(s => {
           if (typeof s === 'string') return s;
+          if (s && s.tag && typeof s.tag.name === 'string') return s.tag.name;
           if (s && typeof s.name === 'string') return s.name;
           if (s && typeof s.tag === 'string') return s.tag;
           return 'Skill';
@@ -117,7 +144,7 @@ export default function BrowseGigs({ onNavigate }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} />
+      <Navbar onNavigate={onNavigate} role={role} />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {/* ── Sidebar ── */}
@@ -171,8 +198,8 @@ export default function BrowseGigs({ onNavigate }) {
 
           {/* Action Buttons */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
-            <Btn style={{ width: "100%", justifyContent: "center" }}>Apply Filters</Btn>
-            <Btn variant="outlined" style={{ width: "100%", justifyContent: "center" }}>Clear Filters</Btn>
+            <Btn onClick={handleApplyFilters} style={{ width: "100%", justifyContent: "center" }}>Apply Filters</Btn>
+            <Btn onClick={handleClearFilters} variant="outlined" style={{ width: "100%", justifyContent: "center" }}>Clear Filters</Btn>
           </div>
         </aside>
 
@@ -236,16 +263,41 @@ export default function BrowseGigs({ onNavigate }) {
 
           {/* Pagination */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, paddingTop: 8 }}>
-            {["← Prev", "1", "2", "3", "Next →"].map((p, i) => (
-              <button key={i} style={{
-                padding: p === "1" ? "0" : "8px 14px",
-                width: p === "1" ? 38 : "auto", height: p === "1" ? 38 : "auto",
-                background: p === "1" ? C.black : C.white,
-                color: p === "1" ? C.white : C.textPrimary,
+            <button 
+              disabled={page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              style={{
+                padding: "8px 14px",
+                background: C.white,
+                color: page === 1 ? C.textMuted : C.textPrimary,
+                border: `1px solid ${C.border}`, borderRadius: 3,
+                fontSize: 13, fontWeight: 700, cursor: page === 1 ? "default" : "pointer", fontFamily: "'DM Sans', sans-serif",
+                opacity: page === 1 ? 0.5 : 1
+              }}>← Prev</button>
+
+            {[1, 2, 3].map((p) => (
+              <button 
+                key={p} 
+                onClick={() => setPage(p)}
+                style={{
+                  padding: "0",
+                  width: 38, height: 38,
+                  background: page === p ? C.black : C.white,
+                  color: page === p ? C.white : C.textPrimary,
+                  border: `1px solid ${C.border}`, borderRadius: 3,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                }}>{p}</button>
+            ))}
+
+            <button 
+              onClick={() => setPage(p => p + 1)}
+              style={{
+                padding: "8px 14px",
+                background: C.white,
+                color: C.textPrimary,
                 border: `1px solid ${C.border}`, borderRadius: 3,
                 fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-              }}>{p}</button>
-            ))}
+              }}>Next →</button>
           </div>
 
           <StickyNote text="🔗 Links to G01 – Profile Management · Clicking freelancer names/avatars navigates to their profile. · Clicking a gig card → G03_GigDetail · Clicking category chip → G03_CategorySelection" />

@@ -27,13 +27,21 @@ export const C = {
 };
 
 // ─── NAVBAR ──────────────────────────────────────────────────────────────────
-export function Navbar({ onNavigate, currentScreen }) {
-  const links = [
-    { label: "Browse",     key: "browse"     },
-    { label: "My Gigs",    key: "mygigs"     },
-    { label: "Create Gig", key: "create"     },
-    { label: "Categories", key: "categories" },
+export function Navbar({ onNavigate, currentScreen, role }) {
+  const freelancerLinks = [
+    { label: "Browse Jobs", key: "browsejobs" },
+    { label: "My Gigs",     key: "mygigs"     },
+    { label: "Create Gig",  key: "create"     },
+    { label: "My Proposals",key: "myproposals" },
   ];
+
+  const clientLinks = [
+    { label: "Browse Gigs",  key: "browse"    },
+    { label: "My Jobs",      key: "myjobs"    },
+    { label: "Post a Job",   key: "createjob" },
+  ];
+
+  const links = role === "client" ? clientLinks : freelancerLinks;
 
   return (
     <nav style={{

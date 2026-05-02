@@ -26,9 +26,10 @@ export default function CategorySelection({ onNavigate }) {
 
   // If no backend categories, fallback to mock data
   const catsToRender = categories?.length > 0 ? categories.map(c => ({
-    icon: "💻", // backend might not store emojis, fallback
+    id: c.id,
+    icon: c.icon_url || "💻", 
     name: c.name,
-    count: Math.floor(Math.random() * 100) + 10 // mock count
+    count: c.jobs_count || 0 
   })) : CATEGORIES;
 
   return (
@@ -72,7 +73,7 @@ export default function CategorySelection({ onNavigate }) {
             {catsToRender.map((cat, i) => (
               <div
                 key={i}
-                onClick={() => onNavigate("browse")}
+                onClick={() => onNavigate("browsejobs", { categoryId: cat.id })}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 style={{
@@ -89,7 +90,7 @@ export default function CategorySelection({ onNavigate }) {
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", marginBottom: 3 }}>{cat.name}</div>
-                  <div style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{cat.count} gigs available</div>
+                  <div style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{cat.count} open jobs</div>
                 </div>
               </div>
             ))}
@@ -103,7 +104,7 @@ export default function CategorySelection({ onNavigate }) {
             {TRENDING_TAGS.map((tag, i) => (
               <button
                 key={tag}
-                onClick={() => onNavigate("browse")}
+                onClick={() => onNavigate("browsejobs", { q: tag })}
                 onMouseEnter={() => setTagHovered(i)}
                 onMouseLeave={() => setTagHovered(null)}
                 style={{

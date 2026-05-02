@@ -1,6 +1,7 @@
 'use strict';
 
 const { body } = require('express-validator');
+const { isDatabaseUuid } = require('./uuidValidator');
 
 // Note: Using isUUID() instead of isInt() because Module 3 database uses UUIDs for all primary keys.
 
@@ -18,7 +19,11 @@ const createJob = [
   
   body('category_id')
     .notEmpty().withMessage('Category ID is required')
-    .isUUID().withMessage('Category ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Category ID must be a valid UUID'),
+
+  body('project_type')
+    .optional()
+    .isIn(['fixed_price', 'fixed', 'hourly']).withMessage('Project type must be fixed_price or hourly'),
   
   body('budget_min')
     .notEmpty().withMessage('Budget min is required')
@@ -50,7 +55,7 @@ const createJob = [
     
   body('required_skills.*')
     .optional()
-    .isUUID().withMessage('Each required skill must be a valid UUID tag_id')
+    .custom(isDatabaseUuid).withMessage('Each required skill must be a valid UUID tag_id')
 ];
 
 const updateJob = [
@@ -69,7 +74,11 @@ const updateJob = [
   
   body('category_id')
     .optional()
-    .isUUID().withMessage('Category ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Category ID must be a valid UUID'),
+
+  body('project_type')
+    .optional()
+    .isIn(['fixed_price', 'fixed', 'hourly']).withMessage('Project type must be fixed_price or hourly'),
   
   body('budget_min')
     .optional()
@@ -101,7 +110,7 @@ const updateJob = [
     
   body('required_skills.*')
     .optional()
-    .isUUID().withMessage('Each required skill must be a valid UUID tag_id')
+    .custom(isDatabaseUuid).withMessage('Each required skill must be a valid UUID tag_id')
 ];
 
 module.exports = { createJob, updateJob };

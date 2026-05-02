@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { C, Navbar, Sidebar, Btn, MILESTONES } from "./fbs_shared";
 import { useSubmitBid } from "../../hooks/useBids";
 import { useJob } from "../../hooks/useJobs";
@@ -9,22 +9,50 @@ import { useJob } from "../../hooks/useJobs";
 export default function SubmitProposal({ onNavigate, params }) {
   const [bidAmount, setBidAmount] = useState("2000");
   const [duration, setDuration] = useState("2 months");
-  const [bidType, setBidType] = useState("fixed");
+  const [bidType, setBidType] = useState("fixed_price");
   const [coverLetter, setCoverLetter] = useState("");
   const [milestones, setMilestones] = useState(MILESTONES.map((m, i) => ({ ...m, id: i })));
   const [newTitle, setNewTitle] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newAmount, setNewAmount] = useState("");
+  
   // API integration
   const { submitBid, loading: submitting, error: submitError } = useSubmitBid();
   const { job, loading: jobLoading } = useJob(params?.jobId);
-  const targetJobId = params?.jobId || "demo-job-001";
+  const targetJobId = params?.jobId;
 
-  const totalBid = milestones.reduce((sum, m) => sum + parseInt(m.budget.replace(/\D/g, "") || 0), 0);
+  // Sync bidAmount with totalMilestoneBudget if milestones exist
+  const totalMilestoneBudget = useMemo(() => {
+    return milestones.reduce((sum, m) => {
+      const val = parseInt(m.budget.toString().replace(/\D/g, ""), 10);
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
+  }, [milestones]);
+
+  useEffect(() => {
+    if (milestones.length > 0) {
+      setBidAmount(totalMilestoneBudget.toString());
+    }
+  }, [totalMilestoneBudget, milestones.length]);
 
   const addMilestone = () => {
-    if (!newTitle) return;
-    setMilestones([...milestones, { id: Date.now(), title: newTitle, due: newDate, budget: `$${newAmount}`, status: "Pending" }]);
+    if (!newTitle) {
+      alert("Please enter a milestone title.");
+      return;
+    }
+    const amt = parseInt(newAmount.replace(/\D/g, ""), 10);
+    if (isNaN(amt) || amt <= 0) {
+      alert("Please enter a valid amount for the milestone.");
+      return;
+    }
+
+    setMilestones([...milestones, { 
+      id: Date.now(), 
+      title: newTitle, 
+      due: newDate || "TBD", 
+      budget: `$${amt.toLocaleString()}`, 
+      status: "Pending" 
+    }]);
     setNewTitle(""); setNewDate(""); setNewAmount("");
   };
   const removeMilestone = (id) => setMilestones(milestones.filter(m => m.id !== id));
@@ -46,10 +74,10 @@ export default function SubmitProposal({ onNavigate, params }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: "#FBF9FC" }}>
       <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <Navbar activeLink="browse" onNavigate={onNavigate} />
+      <Navbar activeLink="jobs" onNavigate={onNavigate} />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <Sidebar activeItem="browse" onNavigate={onNavigate} />
+        <Sidebar activeItem="jobs" onNavigate={onNavigate} />
 
         {/* Main — centered single column */}
         <main style={{ flex: 1, overflowY: "auto", padding: "24px 0 120px", display: "flex", justifyContent: "center" }}>
@@ -58,9 +86,9 @@ export default function SubmitProposal({ onNavigate, params }) {
             {/* Breadcrumb + Title */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                <span onClick={() => onNavigate("browse")} style={{ fontSize: 11, color: "#747780", cursor: "pointer", textDecoration: "underline" }}>Browse Jobs</span>
+                <span onClick={() => onNavigate("browsejobs")} style={{ fontSize: 11, color: "#747780", cursor: "pointer", textDecoration: "underline" }}>Browse Jobs</span>
                 <span style={{ color: "#747780", fontSize: 11 }}>›</span>
-                <span onClick={() => onNavigate("detail")} style={{ fontSize: 11, color: "#747780", cursor: "pointer", textDecoration: "underline" }}>Job Detail</span>
+                <span onClick={() => onNavigate("jobdetail", { id: targetJobId })} style={{ fontSize: 11, color: "#747780", cursor: "pointer", textDecoration: "underline" }}>Job Detail</span>
                 <span style={{ color: "#747780", fontSize: 11 }}>›</span>
                 <span style={{ fontSize: 11, color: C.navy, fontWeight: 600 }}>Submit Proposal</span>
               </div>
@@ -107,7 +135,7 @@ export default function SubmitProposal({ onNavigate, params }) {
               <div>
                 <label style={labelStyle}>Bid Type</label>
                 <div style={{ display: "flex", gap: 24 }}>
-                  {[["fixed", "Fixed Price"], ["hourly", "Hourly Rate"]].map(([val, label]) => (
+                  {[["fixed_price", "Fixed Price"], ["hourly", "Hourly Rate"]].map(([val, label]) => (
                     <label key={val} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: 14, color: C.textDark }}>
                       <input type="radio" name="bidType" value={val} checked={bidType === val} onChange={() => setBidType(val)}
                         style={{ accentColor: C.navy, width: 16, height: 16 }} />
@@ -177,7 +205,7 @@ export default function SubmitProposal({ onNavigate, params }) {
                 ))}
                 {/* Total */}
                 <div style={{ display: "flex", justifyContent: "flex-end", padding: "10px 10px", borderTop: `1px solid ${C.border}`, background: "#F9FAFB" }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: C.navy, fontFamily: "'Inter', sans-serif" }}>Total: ${totalBid.toLocaleString()}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: C.navy, fontFamily: "'Inter', sans-serif" }}>Total: ${totalMilestoneBudget.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -207,13 +235,25 @@ export default function SubmitProposal({ onNavigate, params }) {
                     alert("No job selected to submit a proposal for.");
                     return;
                   }
+                  if (!coverLetter.trim()) {
+                    alert("Cover letter is required.");
+                    return;
+                  }
+                  const finalBidAmount = bidType === "Milestones" ? totalMilestoneBudget : (parseFloat(bidAmount) || 0);
+                  
+                  if (finalBidAmount <= 0) {
+                    alert("Please enter a bid amount or add milestones with budgets.");
+                    return;
+                  }
+
                   const result = await submitBid(targetJobId, {
-                    bid_amount: parseFloat(bidAmount) || 0,
+                    bid_amount: finalBidAmount,
                     cover_letter: coverLetter,
-                    estimated_duration: duration,
-                    bid_type: bidType,
+                    duration_label: duration,
+                    bid_type: "fixed_price", // Enum project_type only allows 'fixed_price' or 'hourly'
+                    milestones: milestones
                   });
-                  if (result) onNavigate("proposals");
+                  if (result) onNavigate("myproposals");
                 }}
                 style={{ height: 40, padding: "0 32px", fontSize: 14, opacity: submitting ? 0.7 : 1 }}
               >

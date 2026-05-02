@@ -15,8 +15,9 @@
  *   The backend validates it with MODULE1_JWT_SECRET.
  */
 
-// ── Base URL (proxied by Vite in dev, real URL in production) ─────────────────
-const BASE_URL = '/api/v1';
+// Base URL. In dev this defaults to Vite's /api/v1 proxy. In production,
+// set VITE_API_BASE_URL when the backend is hosted on another origin.
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
 
 // ── Auth token store ──────────────────────────────────────────────────────────
 let _authToken = null;
@@ -230,6 +231,9 @@ export const bidApi = {
   /** PUT /api/v1/bids/:id/accept — Accept a bid (client only) */
   accept: (bidId, jobId) =>
     request(`/bids/${bidId}/accept`, { method: 'PUT', body: JSON.stringify({ job_id: jobId }) }),
+
+  /** GET /api/v1/bids/:id — Get a specific bid detail */
+  getById: (bidId) => request(`/bids/${bidId}`),
 
   /** PUT /api/v1/bids/:id/reject — Reject a bid (client only) */
   reject: (bidId) => request(`/bids/${bidId}/reject`, { method: 'PUT' }),

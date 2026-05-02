@@ -32,21 +32,20 @@ export default function CreateJob({ onNavigate }) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    const res = await postJob({
-      title,
-      description: description || "No description provided.",
-      category_id: category,
-      project_type: projectType,
-      budget_min: minBudget,
-      budget_max: maxBudget,
-      expires_at: expiresAt.toISOString(),
-      // Omitting required_skills because the backend expects UUIDs from the tags table
-    });
-
-    if (res) {
+    try {
+      await postJob({
+        title,
+        description: description || "No description provided.",
+        category_id: category,
+        project_type: projectType,
+        budget_min: minBudget,
+        budget_max: maxBudget,
+        expires_at: expiresAt.toISOString(),
+        // Omitting required_skills because the backend expects UUIDs from the tags table
+      });
       onNavigate("myjobs");
-    } else {
-      alert("Failed to post job. Please check your inputs.");
+    } catch (e) {
+      alert(e.message || "Failed to post job. Make sure the backend is running and your inputs are valid.");
     }
   };
 

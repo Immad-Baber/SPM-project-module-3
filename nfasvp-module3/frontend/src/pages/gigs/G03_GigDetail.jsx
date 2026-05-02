@@ -30,13 +30,15 @@ export default function GigDetail({ onNavigate, params }) {
   };
 
   const { gig, loading, error } = useGig(params?.id);
-
   const realTiers = gig?.pricing_tiers || [];
-  const tier = realTiers.find(t => t.name === pricing) || TIERS[pricing]; // Fallback to mock if not matching name
-  if (realTiers.length > 0 && !realTiers.find(t => t.name === pricing)) {
-      // If we have real tiers but none matches 'Basic', just pick the first one.
+
+  useEffect(() => {
+    if (realTiers.length > 0 && !realTiers.find(t => t.name === pricing)) {
       setPricing(realTiers[0].name);
-  }
+    }
+  }, [realTiers, pricing]);
+
+  const tier = realTiers.find(t => t.name === pricing) || TIERS[pricing]; 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
@@ -136,7 +138,11 @@ export default function GigDetail({ onNavigate, params }) {
                   <div>
                     <h3 style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 600, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Skills Used</h3>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {(Array.isArray(gig.required_skills) ? gig.required_skills.map(s => typeof s === 'string' ? s : s.name || s.tag) : ["Skill"]).map(s => (
+                      {(Array.isArray(gig.required_skills) ? gig.required_skills.map(s => {
+                    if (typeof s === 'string') return s;
+                    if (s && s.tag && typeof s.tag.name === 'string') return s.tag.name;
+                    return s.name || s.tag || 'Skill';
+                  }) : ["Skill"]).map(s => (
                         <span key={s} style={{ background: C.chipBg, border: `1px solid ${C.border}`, borderRadius: 12, padding: "5px 12px", fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 5 }}>
                           <span style={{ fontSize: 10, fontWeight: 700 }}>✓</span>{s}
                         </span>

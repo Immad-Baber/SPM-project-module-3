@@ -26,9 +26,11 @@ function buildCategoryTree(flat) {
   const map = {};
   const roots = [];
 
-  // Index all nodes
+  // Index all nodes and flatten job counts
   for (const node of flat) {
-    map[node.id] = { ...node, children: [] };
+    const jobsCount = node.jobs?.[0]?.count || 0;
+    map[node.id] = { ...node, jobs_count: jobsCount, children: [] };
+    delete map[node.id].jobs; // Clean up the raw jobs count array
   }
 
   // Link children to parents

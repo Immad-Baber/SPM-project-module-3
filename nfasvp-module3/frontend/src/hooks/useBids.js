@@ -9,6 +9,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import { bidApi, jobApi } from '../services/api';
 
+/* ─── Single Bid Detail ─────────────────────────────────────────────────────── */
+export function useBid(bidId) {
+  const [bid,     setBid]     = useState(null);
+  const [loading, setLoading] = useState(!!bidId);
+  const [error,   setError]   = useState(null);
+
+  const fetchBid = useCallback(async () => {
+    if (!bidId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await bidApi.getById(bidId);
+      if (res.success) setBid(res.data);
+      else setError(res.error || 'Failed to load bid');
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [bidId]);
+
+  useEffect(() => { fetchBid(); }, [fetchBid]);
+
+  return { bid, loading, error, refresh: fetchBid };
+}
+
 /* ─── Freelancer — my proposals ─────────────────────────────────────────────── */
 export function useMyProposals(filters = {}) {
   const [bids,    setBids]    = useState([]);

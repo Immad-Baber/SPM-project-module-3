@@ -77,19 +77,26 @@ function JobCard({ job, onNavigate }) {
 // ══════════════════════════════════════════════════════════════════════════════
 // 07 - Browse Jobs
 // ══════════════════════════════════════════════════════════════════════════════
-export default function BrowseJobs({ onNavigate }) {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+export default function BrowseJobs({ onNavigate, params, role }) {
+  const [search, setSearch] = useState(params?.q || "");
+  const [category, setCategory] = useState(params?.categoryId || "");
   const [budget, setBudget] = useState("");
   const [projectType, setProjectType] = useState("");
+  const [page, setPage] = useState(1);
 
   const filters = useMemo(() => {
-    const f = {};
+    const f = { page, status: 'open' };
     if (projectType) f.project_type = projectType === "Hourly" ? "hourly" : "fixed_price";
-    // Search is not directly supported in the simple job list filter, but we can pass it
-    // depending on the backend, or rely on search endpoint
+    if (search) f.q = search;
+    if (category) f.category_id = category;
+    if (budget) {
+      if (budget === "< $500") { f.budget_max = 500; }
+      else if (budget === "$500-$2k") { f.budget_min = 500; f.budget_max = 2000; }
+      else if (budget === "$2k-$5k") { f.budget_min = 2000; f.budget_max = 5000; }
+      else if (budget === "> $5k") { f.budget_min = 5000; }
+    }
     return f;
-  }, [projectType]);
+  }, [projectType, page, search, category, budget]);
 
   const { jobs, loading, error, meta } = useJobs(filters);
 
@@ -105,6 +112,7 @@ export default function BrowseJobs({ onNavigate }) {
       type: j.project_type === 'fixed_price' ? "Fixed Price" : "Hourly",
       skills: Array.isArray(j.required_skills) ? j.required_skills.map(s => {
         if (typeof s === 'string') return s;
+        if (s && s.tag && typeof s.tag.name === 'string') return s.tag.name;
         if (s && typeof s.name === 'string') return s.name;
         if (s && typeof s.tag === 'string') return s.tag;
         return 'Skill';
@@ -116,10 +124,10 @@ export default function BrowseJobs({ onNavigate }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: C.bgPage }}>
       <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <Navbar activeLink="browse" onNavigate={onNavigate} />
+      <Navbar activeLink="jobs" onNavigate={onNavigate} role={role} />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <Sidebar activeItem="browse" onNavigate={onNavigate} />
+        <Sidebar activeItem="jobs" onNavigate={onNavigate} role={role} />
 
         {/* Main Content */}
         <main style={{ flex: 1, overflowY: "auto", padding: 32, display: "flex", flexDirection: "column", gap: 32 }}>
@@ -196,20 +204,32 @@ export default function BrowseJobs({ onNavigate }) {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Pagination Block */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, padding: "32px 0" }}>
-            <button style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700 }}>‹</button>
+            <button 
+              disabled={page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, cursor: page === 1 ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, opacity: page === 1 ? 0.5 : 1 }}>‹</button>
+            
             {[1, 2, 3, 4].map(p => (
-              <button key={p} style={{
-                width: 40, height: 40, border: `1px solid ${p === 1 ? C.navy : C.border}`,
-                borderRadius: 8, background: p === 1 ? C.navy : C.white,
-                color: p === 1 ? C.white : C.textDark, cursor: "pointer",
-                fontSize: 16, fontWeight: p === 1 ? 700 : 400, fontFamily: "'Inter', sans-serif",
-              }}>{p}</button>
+              <button 
+                key={p} 
+                onClick={() => setPage(p)}
+                style={{
+                  width: 40, height: 40, border: `1px solid ${page === p ? C.navy : C.border}`,
+                  borderRadius: 8, background: page === p ? C.navy : C.white,
+                  color: page === p ? C.white : C.textDark, cursor: "pointer",
+                  fontSize: 16, fontWeight: page === p ? 700 : 400, fontFamily: "'Inter', sans-serif",
+                }}>{p}</button>
             ))}
             <span style={{ color: "#74777F", fontSize: 16 }}>…</span>
-            <button style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, fontSize: 16, cursor: "pointer", color: C.textDark }}>10</button>
-            <button style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700 }}>›</button>
+            <button 
+              onClick={() => setPage(10)}
+              style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, fontSize: 16, cursor: "pointer", color: C.textDark }}>10</button>
+            
+            <button 
+              onClick={() => setPage(p => p + 1)}
+              style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700 }}>›</button>
           </div>
         </main>
       </div>

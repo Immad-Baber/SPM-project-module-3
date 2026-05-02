@@ -14,6 +14,7 @@ import JobDetail            from "./pages/bids/G03_JobDetail.jsx";
 import SubmitProposal       from "./pages/bids/G03_SubmitProposal.jsx";
 import MyProposals          from "./pages/bids/G03_MyProposals.jsx";
 import AcceptRejectProposal from "./pages/bids/G03_AcceptRejectProposal.jsx";
+import JobBidsList          from "./pages/bids/G03_JobBidsList.jsx";
 import CreateJob            from "./pages/jobs/G03_CreateJob.jsx";
 import MyJobs               from "./pages/jobs/G03_MyJobs.jsx";
 
@@ -39,8 +40,17 @@ const SCREENS = {
   submit:       SubmitProposal,
   myproposals:  MyProposals,
   acceptreject: AcceptRejectProposal,
+  jobbids:      JobBidsList,
   createjob:    CreateJob,
   myjobs:       MyJobs,
+};
+
+const ROUTE_ALIASES = {
+  jobs: "browsejobs",
+  proposals: "myproposals",
+  review: "acceptreject",
+  jobproposals: "jobbids",
+  detail: "jobdetail",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -253,11 +263,12 @@ export default function App() {
       setRole(null);
       setScreen("home");
       setScreenParams({});
-      sessionStorage.removeItem("nfasvp_token");
+      setAuthToken(null);
       return;
     }
-    if (key in SCREENS || key === "home") {
-      setScreen(key);
+    const target = ROUTE_ALIASES[key] || key;
+    if (target in SCREENS || target === "home") {
+      setScreen(target);
       setScreenParams(params);
     }
   };
@@ -271,5 +282,5 @@ export default function App() {
   const Screen = SCREENS[screen];
   if (!Screen) return <Home onNavigate={onNavigate} backendStatus={backendStatus} role={role} />;
 
-  return <Screen onNavigate={onNavigate} params={screenParams} />;
+  return <Screen onNavigate={onNavigate} params={screenParams} role={role} />;
 }

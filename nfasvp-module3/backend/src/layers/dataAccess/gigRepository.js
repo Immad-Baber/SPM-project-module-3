@@ -9,7 +9,7 @@
 const supabase = require('../../config/supabaseClient');
 
 async function createGig(gigData) {
-  return supabase.from('gigs').insert({ ...gigData, status: 'draft' }).select().single();
+  return supabase.from('gigs').insert({ status: 'draft', ...gigData }).select().single();
 }
 
 async function getGigById(id) {

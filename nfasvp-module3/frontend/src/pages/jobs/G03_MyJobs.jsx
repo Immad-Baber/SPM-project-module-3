@@ -2,7 +2,7 @@ import { useState } from "react";
 import { C, Navbar, Btn } from "../gigs/shared";
 import { useMyJobs } from "../../hooks/useJobs";
 
-export default function MyJobs({ onNavigate }) {
+export default function MyJobs({ onNavigate, role }) {
   const [filter, setFilter] = useState("all");
   const { jobs, loading, error } = useMyJobs();
 
@@ -14,7 +14,7 @@ export default function MyJobs({ onNavigate }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} />
+      <Navbar onNavigate={onNavigate} role={role} />
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px", width: "100%", boxSizing: "border-box" }}>
         
@@ -32,7 +32,7 @@ export default function MyJobs({ onNavigate }) {
               key={status}
               onClick={() => setFilter(status)}
               style={{
-                padding: "8px 16px", borderRadius: 20, border: "none", cursor: "pointer",
+                padding: "8px 16px", borderRadius: 20, cursor: "pointer",
                 fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", textTransform: "capitalize",
                 background: filter === status ? C.black : C.white,
                 color: filter === status ? C.white : C.textSecondary,
@@ -70,7 +70,7 @@ export default function MyJobs({ onNavigate }) {
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <Btn variant="outlined" onClick={() => onNavigate("jobdetail", { id: job.id })}>View / Edit</Btn>
-                  <Btn onClick={() => onNavigate("acceptreject", { jobId: job.id })}>View Bids</Btn>
+                  <Btn onClick={() => onNavigate("jobproposals", { jobId: job.id })}>View Bids</Btn>
                 </div>
               </div>
             ))}

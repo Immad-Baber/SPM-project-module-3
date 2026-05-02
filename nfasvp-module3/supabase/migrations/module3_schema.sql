@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS bids (
   duration_label VARCHAR(50),
   cover_letter   TEXT,
   status         bid_status   NOT NULL DEFAULT 'pending',
+  milestones     JSONB        NOT NULL DEFAULT '[]'::jsonb,
   submitted_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
 
