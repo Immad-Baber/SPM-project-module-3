@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, Navbar, StickyNote, Btn } from "./shared";
+import { Btn } from "./shared";
 import { useCategories } from "../../hooks/useCategories";
 
 const CATEGORIES = [
@@ -20,8 +20,6 @@ const TRENDING_TAGS = ["React", "Figma", "Python", "WordPress", "SEO", "Logo Des
 // G03_CategorySelection
 // ══════════════════════════════════════════════════════════════════════════════
 export default function CategorySelection({ onNavigate }) {
-  const [hovered, setHovered] = useState(null);
-  const [tagHovered, setTagHovered] = useState(null);
   const { categories, loading, error } = useCategories();
 
   // If no backend categories, fallback to mock data
@@ -33,117 +31,94 @@ export default function CategorySelection({ onNavigate }) {
   })) : CATEGORIES;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} />
-
-      <div style={{ flex: 1, overflowY: "auto", padding: "36px 40px", display: "flex", flexDirection: "column", gap: 32 }}>
-
-        {/* ── Header ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center", textAlign: "center" }}>
-          <h1 style={{ margin: 0, fontSize: 34, fontWeight: 800, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", letterSpacing: "-0.8px" }}>
-            Browse Gigs by Category
+    <div className="space-y-12 animate-in fade-in duration-700">
+      {/* ── Header ── */}
+      <div className="flex flex-col items-center text-center space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-5xl font-black text-primary uppercase tracking-tighter leading-none">
+            Marketplace Taxonomy
           </h1>
-          <p style={{ margin: 0, fontSize: 16, color: C.textSecondary, fontFamily: "'DM Sans', sans-serif" }}>
-            Select a category to explore verified services
+          <p className="text-slate-500 font-medium italic">
+            Explore verified professional sectors and specialized service streams.
           </p>
-
-          {/* Search Bar */}
-          <div style={{ position: "relative", width: "100%", maxWidth: 560, marginTop: 12 }}>
-            <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.textMuted }}>🔍</span>
-            <input
-              placeholder="What service are you looking for today?"
-              style={{
-                width: "100%", padding: "14px 18px 14px 46px", border: `1px solid ${C.border}`,
-                borderRadius: 6, fontSize: 15, color: C.textPrimary, background: C.white,
-                fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-              }}
-            />
-          </div>
         </div>
 
-        {/* ── 3×3 Category Grid ── */}
-        {loading ? (
-          <div style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>Loading categories...</div>
-        ) : error ? (
-          <div style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'DM Sans', sans-serif" }}>Error: {error}</div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            {catsToRender.map((cat, i) => (
-              <div
-                key={i}
-                onClick={() => onNavigate("browsejobs", { categoryId: cat.id })}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-                style={{
-                  background: C.white, border: `1px solid ${hovered === i ? C.textMuted : C.border}`,
-                  borderRadius: 8, padding: "20px 20px",
-                  display: "flex", alignItems: "center", gap: 16,
-                  cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s, border-color 0.18s",
-                  boxShadow: hovered === i ? "0 6px 20px rgba(0,0,0,0.1)" : "0 1px 3px rgba(0,0,0,0.04)",
-                  transform: hovered === i ? "translateY(-2px)" : "none",
-                }}
-              >
-                <div style={{ width: 52, height: 52, borderRadius: 8, background: C.chipBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>
-                  {cat.icon}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", marginBottom: 3 }}>{cat.name}</div>
-                  <div style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{cat.count} open jobs</div>
-                </div>
+        {/* Search Bar */}
+        <div className="relative w-full max-w-xl group">
+          <input
+            placeholder="Search expertise domains..."
+            className="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-2xl px-6 py-4 pl-14 text-sm font-medium focus:ring-2 focus:ring-primary outline-none shadow-xl transition-all group-hover:border-primary/30"
+          />
+          <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-primary transition-colors">search</span>
+        </div>
+      </div>
+
+      {/* ── Category Grid ── */}
+      {loading ? (
+        <div className="py-20 text-center font-black uppercase tracking-widest text-slate-300 italic">Mapping Industrial Domains...</div>
+      ) : error ? (
+        <div className="py-20 text-center text-error font-black uppercase tracking-widest">Protocol Error: {error}</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {catsToRender.map((cat, i) => (
+            <div
+              key={i}
+              onClick={() => onNavigate("browsejobs", { categoryId: cat.id })}
+              className="bg-surface-container-lowest border border-outline-variant/5 rounded-3xl p-8 flex items-center gap-6 cursor-pointer hover:shadow-2xl hover:-translate-y-1 hover:border-primary/20 transition-all group"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
+                {cat.icon}
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── Trending Skill Tags ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Trending Skill Tags</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {TRENDING_TAGS.map((tag, i) => (
-              <button
-                key={tag}
-                onClick={() => onNavigate("browsejobs", { q: tag })}
-                onMouseEnter={() => setTagHovered(i)}
-                onMouseLeave={() => setTagHovered(null)}
-                style={{
-                  padding: "7px 16px", borderRadius: 20,
-                  border: `1.5px solid ${C.border}`,
-                  background: tagHovered === i ? C.black : C.white,
-                  color: tagHovered === i ? C.white : C.textPrimary,
-                  fontSize: 12, fontWeight: 700, cursor: "pointer",
-                  fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.4px",
-                  transition: "background 0.15s, color 0.15s",
-                }}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Admin Section (grey background box) ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-          <div style={{ background: C.badgeBg, border: `1px solid ${C.border}`, borderRadius: 6, padding: 22, display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 14 }}>⚙️</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#5E6367", letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>ADMIN PANEL</span>
+              <div className="space-y-1">
+                <div className="font-black text-primary uppercase tracking-tight group-hover:text-tertiary-container transition-colors">{cat.name}</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{cat.count} active mandates</div>
+              </div>
             </div>
-            <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>
-              Category Taxonomy
-            </h4>
-            <p style={{ margin: 0, fontSize: 13, color: C.textSecondary, lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>
-              Category taxonomy managed by administrator. Manage the hierarchical structure of marketplace categories and associated skill metadata.
-            </p>
-            <Btn variant="outlined" small style={{ alignSelf: "flex-start", marginTop: 4 }}>
-              Manage Categories
-            </Btn>
-          </div>
-
-          <StickyNote text="🔗 Manage Categories → Links to G08 – Dispute & Admin Module · Category card / skill chip clicks → G03_BrowseGigs" />
+          ))}
         </div>
+      )}
 
+      {/* ── Trending Skill Tags ── */}
+      <div className="space-y-6">
+        <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+           <span className="w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse" />
+           High-Velocity Expertise
+        </h3>
+        <div className="flex flex-wrap gap-3">
+          {TRENDING_TAGS.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => onNavigate("browsejobs", { q: tag })}
+              className="px-5 py-2 rounded-xl bg-surface-container border border-outline-variant/10 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-all shadow-sm"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Admin Section ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 bg-surface-container-high/30 border border-outline-variant/10 rounded-3xl p-8 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary">analytics</span>
+            <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Governance Protocol</span>
+          </div>
+          <h4 className="text-xl font-black text-primary uppercase tracking-tight">
+            Taxonomy Management System
+          </h4>
+          <p className="text-sm text-slate-500 font-medium leading-relaxed italic">
+            Hierarchical structure for global marketplace synchronization. Metadata controlled by the Editorial Engine Design Protocol v1.0.
+          </p>
+          <div className="pt-4">
+            <Btn variant="outlined" className="h-10 text-[10px]">Access Admin Console</Btn>
+          </div>
+        </div>
+        
+        <div className="bg-primary/5 border border-primary/10 rounded-3xl p-8 flex flex-col items-center text-center space-y-4">
+           <span className="material-symbols-outlined text-4xl text-primary">hub</span>
+           <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-relaxed">Cross-module synchronization active for G03, G07, and G08 modules.</p>
+        </div>
       </div>
     </div>
   );

@@ -6,8 +6,6 @@
 -- Called by: BiddingService.acceptBid() → bidRepository.acceptBidTransaction()
 -- ACID guarantee: all 4 operations succeed or all roll back.
 --
--- HOW TO INSTALL:
---   Supabase Dashboard → SQL Editor → New Query → paste → Run
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION accept_bid_transaction(

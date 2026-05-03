@@ -1,57 +1,60 @@
 import { useState } from "react";
-import { C, Navbar, StickyNote, Btn } from "../gigs/shared";
+import { Btn } from "../gigs/shared";
 import { useMyProjects } from "../../hooks/useProjects";
 
 // ─── PROJECT STATUS CARD ────────────────────────────────────────────────────
 function ProjectCard({ project, onNavigate, role }) {
-  const [hovered, setHovered] = useState(false);
-  
   const statusColors = {
-    pending:   { bg: "#FEF3C7", text: "#92400E", label: "Pending" },
-    active:    { bg: "#DBEAFE", text: "#1E40AF", label: "In Progress" },
-    completed: { bg: "#D1FAE5", text: "#065F46", label: "Completed" },
-    cancelled: { bg: "#FEE2E2", text: "#991B1B", label: "Cancelled" },
+    pending:   "bg-surface-container-high text-on-surface-variant",
+    active:    "bg-tertiary-fixed text-on-tertiary-fixed",
+    completed: "bg-primary text-on-primary",
+    cancelled: "bg-error-container text-on-error-container",
   };
-  const st = statusColors[project.status] || statusColors.pending;
+  
+  const statusLabels = {
+    pending: "Awaiting Start",
+    active: "In Progress",
+    completed: "Finalized",
+    cancelled: "Terminated",
+  };
+
+  const stClass = statusColors[project.status] || statusColors.pending;
+  const stLabel = statusLabels[project.status] || project.status;
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
-        padding: 20, display: "flex", justifyContent: "space-between", alignItems: "center",
-        transition: "box-shadow 0.2s, transform 0.2s",
-        boxShadow: hovered ? "0 4px 12px rgba(0,0,0,0.08)" : "none",
-        transform: hovered ? "translateY(-1px)" : "none",
-        cursor: "pointer"
-      }}
       onClick={() => onNavigate("projectdetail", { id: project.id })}
+      className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl p-6 flex items-center justify-between hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group"
     >
-      <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-        <div style={{ width: 50, height: 50, background: "#F1F5F9", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
+      <div className="flex items-center gap-6">
+        <div className="w-16 h-16 bg-surface-container rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
           {project.type === 'gig' ? '💼' : '🛠️'}
         </div>
-        <div>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>
+        <div className="space-y-2">
+          <h3 className="text-xl font-black text-primary uppercase tracking-tight">
             {project.title || `Project #${project.id.substring(0, 8)}`}
           </h3>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            <span style={{ fontSize: 13, color: C.textMuted }}>{role === 'client' ? 'Freelancer:' : 'Client:'} {project.partner_name || 'User'}</span>
-            <span style={{ color: C.border }}>•</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.black }}>PKR {project.total_budget || project.amount || '0'}</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+               <span className="material-symbols-outlined text-sm">person</span>
+               {role === 'client' ? 'Freelancer' : 'Client'}: {project.partner_name || 'Expert'}
+            </div>
+            <span className="text-slate-200">|</span>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+               <span className="material-symbols-outlined text-sm">payments</span>
+               PKR {project.total_budget || project.amount || '0'}
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{
-          background: st.bg, color: st.text, padding: "4px 12px", borderRadius: 20,
-          fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px"
-        }}>
-          {st.label}
-        </div>
-        <Btn small variant="ghost">View Details →</Btn>
+      <div className="flex items-center gap-6">
+        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-outline-variant/10 ${stClass}`}>
+          {stLabel}
+        </span>
+        <button className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">
+          arrow_forward_ios
+        </button>
       </div>
     </div>
   );
@@ -72,68 +75,55 @@ export default function ProjectStatus({ onNavigate, role }) {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} role={role} />
+    <div className="space-y-10">
+      {/* Header */}
+      <div className="border-l-4 border-tertiary-fixed pl-6">
+        <h1 className="text-4xl font-black text-primary uppercase tracking-tight">Project Portfolio</h1>
+        <p className="text-slate-500 font-medium">Monitoring enterprise execution and milestone synchronization.</p>
+      </div>
 
-      <main style={{ flex: 1, overflowY: "auto", padding: "40px 24px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: 32 }}>
-          
-          {/* Header */}
-          <div>
-            <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: C.black, letterSpacing: "-1px" }}>
-              My Projects
-            </h1>
-            <p style={{ margin: "4px 0 0", color: C.textSecondary, fontSize: 16 }}>
-              Track progress, manage milestones, and communicate with your project partners.
-            </p>
+      {/* Tabs */}
+      <div className="flex gap-10 border-b border-outline-variant/10">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === t.id ? 'text-primary' : 'text-slate-400 hover:text-primary'}`}
+          >
+            {t.label}
+            {activeTab === t.id && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-full" />}
+          </button>
+        ))}
+      </div>
+
+      {/* Project List */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="py-20 text-center font-black uppercase tracking-widest text-slate-300 italic">Synchronizing Portfolio Data...</div>
+        ) : error ? (
+          <div className="py-20 text-center text-error font-black uppercase tracking-widest">Protocol Error: {error}</div>
+        ) : projects.length === 0 ? (
+          <div className="py-20 flex flex-col items-center gap-6 bg-surface-container/30 border-2 border-dashed border-outline-variant/20 rounded-3xl text-center">
+            <span className="material-symbols-outlined text-6xl text-slate-200">folder_open</span>
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-primary uppercase tracking-tight">No Active Projects</h3>
+              <p className="text-sm text-slate-500 font-medium italic">Initiate engagement via the marketplace to begin tracking.</p>
+            </div>
+            <Btn onClick={() => onNavigate(role === 'client' ? 'browse' : 'browsejobs')} variant="outlined">
+              Explore Opportunities
+            </Btn>
           </div>
-
-          {/* Tabs */}
-          <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, gap: 32 }}>
-            {tabs.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                style={{
-                  background: "none", border: "none", padding: "0 0 12px", cursor: "pointer",
-                  fontSize: 15, fontWeight: activeTab === t.id ? 700 : 500,
-                  color: activeTab === t.id ? C.black : C.textMuted,
-                  borderBottom: activeTab === t.id ? `2px solid ${C.black}` : "2px solid transparent",
-                  transition: "all 0.2s"
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {projects.map(p => <ProjectCard key={p.id} project={p} onNavigate={onNavigate} role={role} />)}
           </div>
+        )}
+      </div>
 
-          {/* Project List */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {loading ? (
-              <div style={{ padding: 60, textAlign: "center", color: C.textMuted }}>Loading projects...</div>
-            ) : error ? (
-              <div style={{ padding: 60, textAlign: "center", color: "red" }}>Error: {error}</div>
-            ) : projects.length === 0 ? (
-              <div style={{ padding: 80, textAlign: "center", background: C.white, border: `1px dashed ${C.border}`, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-                <div style={{ fontSize: 48 }}>📁</div>
-                <h3 style={{ margin: 0, color: C.textPrimary }}>No projects found</h3>
-                <p style={{ margin: 0, color: C.textMuted, maxWidth: 300 }}>You don't have any projects in this category yet. Start by browsing gigs or jobs.</p>
-                <Btn onClick={() => onNavigate(role === 'client' ? 'browse' : 'browsejobs')} variant="outlined">
-                  Explore Marketplace
-                </Btn>
-              </div>
-            ) : (
-              projects.map(p => <ProjectCard key={p.id} project={p} onNavigate={onNavigate} role={role} />)
-            )}
-          </div>
-
-          <div style={{ marginTop: 20 }}>
-            <StickyNote text="🔗 Project Card → G03_ProjectDetail · Status Management → Handled via StatusManagementService backend." />
-          </div>
-
-        </div>
-      </main>
+      <div className="p-6 bg-surface-container rounded-2xl border border-outline-variant/10 flex gap-4 items-center">
+         <div className="w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse" />
+         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Automatic status updates powered by StatusManagementService v2.4</p>
+      </div>
     </div>
   );
 }

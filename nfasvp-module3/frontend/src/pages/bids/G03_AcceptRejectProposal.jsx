@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { C, Navbar, Sidebar, Btn, MilestoneBadge, MILESTONES } from "./fbs_shared";
+import { Btn, MilestoneBadge, MILESTONES } from "./fbs_shared";
 import { useAcceptBid, useRejectBid, useWithdrawBid, useBid } from "../../hooks/useBids";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 11 - Accept / Reject Proposal
 // ══════════════════════════════════════════════════════════════════════════════
 export default function AcceptRejectProposal({ onNavigate, params, role }) {
-  const [showFullLetter, setShowFullLetter] = useState(false);
   const [decision, setDecision] = useState(null); // "accepted" | "rejected" | null
 
   const bidId = params?.bidId;
@@ -15,10 +14,9 @@ export default function AcceptRejectProposal({ onNavigate, params, role }) {
   const { bid, loading: bidLoading, error: bidError } = useBid(bidId);
   const { acceptBid, loading: accepting, error: acceptError } = useAcceptBid();
   const { rejectBid, loading: rejecting, error: rejectError } = useRejectBid();
-  const { withdrawBid, loading: withdrawing } = useWithdrawBid();
 
-  if (bidLoading) return <div style={{ padding: 60, textAlign: "center" }}>Loading proposal...</div>;
-  if (bidError || !bid) return <div style={{ padding: 60, textAlign: "center", color: "red" }}>Error: {bidError || "Proposal not found"}</div>;
+  if (bidLoading) return <div className="py-20 text-center font-black uppercase tracking-widest text-slate-300 italic">Synchronizing Proposal Data...</div>;
+  if (bidError || !bid) return <div className="py-20 text-center text-error font-black uppercase tracking-widest">Protocol Error: {bidError || "Proposal not found"}</div>;
 
   const TIMELINE = [
     { event: "Proposal submitted",  date: new Date(bid.submitted_at).toLocaleDateString(),  active: false },
@@ -26,179 +24,162 @@ export default function AcceptRejectProposal({ onNavigate, params, role }) {
     { event: "Awaiting decision",   date: "Today",   active: bid.status === 'pending'  },
   ];
 
+  const currentStatus = decision || bid.status;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: "#FBF9FC" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <Navbar activeLink="proposals" onNavigate={onNavigate} role={role} />
+    <div className="space-y-10 animate-in fade-in duration-700">
+      <div className="flex justify-between items-end border-b border-outline-variant/10 pb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <button onClick={() => onNavigate("jobproposals", { jobId })} className="hover:text-primary transition-colors">Proposals List</button>
+            <span className="material-symbols-outlined text-sm">chevron_right</span>
+            <span className="text-primary">Proposal Review</span>
+          </div>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tight">Proposal Evaluation</h1>
+        </div>
+        
+        <div className="flex gap-4">
+           <Btn variant="outlined" onClick={() => onNavigate("jobproposals", { jobId })}>Cancel Review</Btn>
+        </div>
+      </div>
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <Sidebar activeItem="proposals" onNavigate={onNavigate} role={role} />
-
-        {/* Main */}
-        <main style={{ flex: 1, overflowY: "auto", padding: 32 }}>
-          <div style={{ maxWidth: 1100, display: "grid", gridTemplateColumns: "1fr 380px", gap: 28, alignItems: "start" }}>
-
-            {/* ── LEFT COLUMN ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-              {/* Breadcrumb + Title */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <span onClick={() => onNavigate("jobproposals", { jobId })} style={{ fontSize: 11, color: "#747780", cursor: "pointer", textDecoration: "underline" }}>Proposals List</span>
-                  <span style={{ color: "#747780", fontSize: 11 }}>›</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: C.navy }}>Proposal Review</span>
-                </div>
-                <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>Proposal Review</h1>
-              </div>
-
-              {/* Proposal Summary Card */}
-              <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                  {[
-                    { label: "Job",            value: bid.job?.title || "Project Proposal" },
-                    { label: "Bid Amount",     value: `$${bid.bid_amount}`, highlight: true },
-                    { label: "Submitted",      value: new Date(bid.submitted_at).toLocaleDateString() },
-                    { label: "Current Status", value: decision || bid.status },
-                  ].map(({ label, value, highlight }) => (
-                    <div key={label}>
-                      <div style={{ fontSize: 11, color: "#747780", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.6px", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{label}</div>
-                      {label === "Current Status" ? (
-                        <span style={{ 
-                          background: value === 'accepted' ? "#E1F5EE" : value === 'rejected' ? "#FCEBEB" : "#FAEEDA", 
-                          color: value === 'accepted' ? "#085041" : value === 'rejected' ? "#A32D2D" : "#633806", 
-                          padding: "4px 12px", borderRadius: 4, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "'Inter', sans-serif" 
-                        }}>
-                          {value}
-                        </span>
-                      ) : (
-                        <div style={{ fontSize: highlight ? 20 : 14, fontWeight: highlight ? 700 : 500, color: highlight ? C.tealDark : C.navy, fontFamily: "'Inter', sans-serif" }}>{value}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Milestone Breakdown */}
-              <div>
-                <h3 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>Milestone Breakdown</h3>
-                <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", background: "#F9FAFB", borderBottom: `1px solid ${C.border}` }}>
-                    {["Milestone", "Due Date", "Amount", "Status"].map(h => (
-                      <div key={h} style={{ padding: "10px 16px", fontSize: 11, fontWeight: 700, color: C.navy, textTransform: "uppercase", letterSpacing: "0.6px", fontFamily: "'Inter', sans-serif" }}>{h}</div>
-                    ))}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {/* ── LEFT COLUMN ── */}
+        <div className="lg:col-span-8 space-y-12">
+          {/* Summary Card */}
+          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-8 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                { label: "Project Focus", value: bid.job?.title || "Editorial Service", icon: "terminal" },
+                { label: "Agreed Capital", value: `PKR ${bid.bid_amount}`, icon: "payments", highlight: true },
+                { label: "Submission Date", value: new Date(bid.submitted_at).toLocaleDateString(), icon: "calendar_today" },
+                { label: "Verification", value: currentStatus, icon: "verified_user" },
+              ].map(({ label, value, icon, highlight }) => (
+                <div key={label} className="space-y-3">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-sm">{icon}</span>
+                    {label}
                   </div>
-                  {(Array.isArray(bid.milestones) && bid.milestones.length > 0 ? bid.milestones : MILESTONES).map((m, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", borderTop: i > 0 ? `1px solid ${C.border}` : "none", alignItems: "center" }}>
-                      <div style={{ padding: "12px 16px", fontWeight: 600, fontSize: 14, color: C.navy, fontFamily: "'Inter', sans-serif" }}>{m.title}</div>
-                      <div style={{ padding: "12px 16px", fontSize: 13, color: "#747780", fontFamily: "'Inter', sans-serif" }}>{m.due}</div>
-                      <div style={{ padding: "12px 16px", fontWeight: 700, fontSize: 14, color: C.navy, fontFamily: "'Inter', sans-serif" }}>{m.budget}</div>
-                      <div style={{ padding: "12px 16px" }}><MilestoneBadge status={m.status} /></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cover Letter */}
-              <div>
-                <h3 style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>Freelancer's Cover Letter</h3>
-                <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                  <p style={{ margin: "0 0 10px", fontSize: 14, color: C.textBody, lineHeight: 1.65, fontFamily: "'Inter', sans-serif", whiteSpace: "pre-wrap" }}>
-                    {bid.cover_letter}
-                  </p>
-                </div>
-              </div>
-
-              {/* Back link */}
-              <div>
-                <Btn variant="ghost" onClick={() => onNavigate("jobproposals", { jobId })} style={{ fontSize: 14, color: "#747780" }}>← Back to Proposals List</Btn>
-              </div>
-            </div>
-
-            {/* ── RIGHT COLUMN ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20, position: "sticky", top: 20 }}>
-
-              {/* Action Card */}
-              <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                <div style={{ padding: 20, borderBottom: `1px solid ${C.border}` }}>
-                  <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>Decision</h3>
-
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0", gap: 8 }}>
-                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: (decision || bid.status) === "accepted" ? "#E1F5EE" : (decision || bid.status) === "rejected" ? "#FCEBEB" : "#FAEEDA", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
-                      {(decision || bid.status) === "accepted" ? "✅" : (decision || bid.status) === "rejected" ? "❌" : "⏳"}
-                    </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: (decision || bid.status) === "accepted" ? "#085041" : (decision || bid.status) === "rejected" ? "#A32D2D" : "#633806", letterSpacing: "0.6px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif" }}>
-                      {decision || bid.status}
+                  {label === "Verification" ? (
+                    <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-outline-variant/10 ${value === 'accepted' ? 'bg-primary text-on-primary' : value === 'rejected' ? 'bg-error-container text-on-error-container' : 'bg-surface-container-high text-primary'}`}>
+                      {value}
                     </span>
-                  </div>
+                  ) : (
+                    <div className={`text-lg font-black uppercase tracking-tight ${highlight ? 'text-primary' : 'text-slate-600'}`}>{value}</div>
+                  )}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Action Buttons */}
-                <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <p style={{ margin: "0 0 8px", fontSize: 12, color: "#747780", fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>Available Actions:</p>
+          {/* Milestone Breakdown */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-black text-primary uppercase tracking-tight">Milestone Strategy</h3>
+            <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl overflow-hidden shadow-sm">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container/50 border-b border-outline-variant/10">
+                    {["Milestone Detail", "Execution Phase", "Capital Allocation", "Status"].map(h => (
+                      <th key={h} className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/5">
+                  {(Array.isArray(bid.milestones) && bid.milestones.length > 0 ? bid.milestones : MILESTONES).map((m, i) => (
+                    <tr key={i} className="hover:bg-surface-container/30 transition-colors">
+                      <td className="px-6 py-5 font-black text-primary text-sm uppercase">{m.title}</td>
+                      <td className="px-6 py-5 text-xs font-medium text-slate-500 italic">{m.due}</td>
+                      <td className="px-6 py-5 font-black text-primary text-sm">{m.budget}</td>
+                      <td className="px-6 py-5">
+                        <MilestoneBadge status={m.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-                  <button
+          {/* Cover Letter */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-black text-primary uppercase tracking-tight">Executive Summary</h3>
+            <div className="bg-surface-container p-8 rounded-3xl border border-outline-variant/10 relative">
+              <span className="material-symbols-outlined absolute -top-4 -left-4 text-6xl text-primary/10 select-none">format_quote</span>
+              <p className="text-slate-600 leading-loose font-medium italic relative z-10 whitespace-pre-wrap">
+                {bid.cover_letter}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── RIGHT COLUMN ── */}
+        <div className="lg:col-span-4 space-y-8 sticky top-24">
+          {/* Decision Card */}
+          <div className="bg-surface-container-lowest border-2 border-primary rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-8 space-y-8">
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center text-5xl shadow-lg border-2 ${currentStatus === "accepted" ? "bg-primary text-on-primary border-primary" : currentStatus === "rejected" ? "bg-error-container text-on-error-container border-error" : "bg-surface-container border-outline-variant animate-pulse"}`}>
+                  {currentStatus === "accepted" ? "check_circle" : currentStatus === "rejected" ? "cancel" : "pending"}
+                  <span className="material-symbols-outlined text-4xl">{currentStatus === "accepted" ? "check_circle" : currentStatus === "rejected" ? "cancel" : "hourglass_empty"}</span>
+                </div>
+                <div className="space-y-1">
+                   <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Current Protocol</h3>
+                   <div className="text-2xl font-black text-primary uppercase tracking-tighter">{currentStatus}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-outline-variant/10">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Authorization Required</p>
+                <div className="flex flex-col gap-3">
+                  <Btn
+                    className="w-full h-14 text-sm"
                     onClick={async () => {
                       const ok = await acceptBid(bidId, jobId);
                       if (ok) setDecision("accepted");
                     }}
-                    disabled={accepting || rejecting || (decision || bid.status) !== "pending"}
-                    style={{
-                      width: "100%", height: 44, background: C.teal,
-                      border: "none", borderRadius: 8, fontSize: 14, fontWeight: 700,
-                      color: C.navy, cursor: "pointer", fontFamily: "'Inter', sans-serif",
-                      opacity: ((decision || bid.status) !== "pending" || rejecting) ? 0.5 : 1,
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    }}
+                    disabled={accepting || rejecting || currentStatus !== "pending"}
                   >
-                    {accepting ? "Accepting…" : "✓ Accept Proposal"}
-                  </button>
+                    {accepting ? "Initiating Contract…" : "Confirm Acceptance"}
+                  </Btn>
 
-                  <button
+                  <Btn
+                    variant="outlined"
+                    className="w-full h-12"
                     onClick={async () => {
                       const ok = await rejectBid(bidId);
                       if (ok) setDecision("rejected");
                     }}
-                    disabled={accepting || rejecting || (decision || bid.status) !== "pending"}
-                    style={{
-                      width: "100%", height: 44, background: "transparent",
-                      border: "2px solid #DC2626", borderRadius: 8, fontSize: 14, fontWeight: 700,
-                      color: "#DC2626", cursor: "pointer", fontFamily: "'Inter', sans-serif",
-                      opacity: ((decision || bid.status) !== "pending" || accepting) ? 0.5 : 1,
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    }}
+                    disabled={accepting || rejecting || currentStatus !== "pending"}
                   >
-                    {rejecting ? "Rejecting…" : "✕ Reject Proposal"}
-                  </button>
-
-                  {(acceptError || rejectError) && (
-                    <div style={{ marginTop: 8, fontSize: 11, color: "#DC2626", fontFamily: "'Inter', sans-serif", textAlign: "center" }}>
-                      {acceptError || rejectError}
-                    </div>
-                  )}
+                    {rejecting ? "Processing Rejection…" : "Decline Proposal"}
+                  </Btn>
                 </div>
-              </div>
-
-              {/* Activity Timeline */}
-              <div style={{ background: "#F9F9FF", border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
-                <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, color: C.navy, fontFamily: "'Manrope', sans-serif" }}>Activity Log</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                  {TIMELINE.map((item, i) => (
-                    <div key={i} style={{ display: "flex", gap: 12, position: "relative", paddingBottom: i < TIMELINE.length - 1 ? 16 : 0 }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: item.active ? C.tealDark : C.border, border: item.active ? `2px solid ${C.tealDark}` : `2px solid ${C.border}`, flexShrink: 0, marginTop: 4 }} />
-                        {i < TIMELINE.length - 1 && <div style={{ width: 2, flex: 1, background: C.border, minHeight: 20 }} />}
-                      </div>
-                      <div style={{ paddingBottom: i < TIMELINE.length - 1 ? 4 : 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: item.active ? 700 : 500, color: item.active ? C.navy : C.textBody, fontFamily: "'Inter', sans-serif" }}>{item.event}</div>
-                        <div style={{ fontSize: 11, color: "#747780", fontFamily: "'Inter', sans-serif", marginTop: 2 }}>{item.date}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                
+                {acceptError || rejectError && (
+                  <p className="text-[10px] font-bold text-error uppercase text-center">{acceptError || rejectError}</p>
+                )}
               </div>
             </div>
           </div>
-        </main>
+
+          {/* Activity Timeline */}
+          <div className="bg-surface-container-high/50 border border-outline-variant/10 rounded-3xl p-8 space-y-6">
+            <h3 className="text-sm font-black text-primary uppercase tracking-widest">Interaction Log</h3>
+            <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-outline-variant/20">
+              {TIMELINE.map((item, i) => (
+                <div key={i} className="flex gap-6 relative">
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center z-10 ${item.active ? 'bg-primary border-primary' : 'bg-surface-container-lowest border-outline-variant'}`}>
+                     {item.active && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                  </div>
+                  <div className="space-y-1">
+                    <p className={`text-xs font-black uppercase tracking-tight ${item.active ? 'text-primary' : 'text-slate-400'}`}>{item.event}</p>
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{item.date}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

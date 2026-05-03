@@ -1,74 +1,54 @@
 import { useState, useMemo } from "react";
-import { C, Navbar, Sidebar, SkillTag, StatusBadge, Btn } from "./fbs_shared";
+import { SkillTag, StatusBadge, Btn } from "./fbs_shared";
 import { useJobs } from "../../hooks/useJobs";
 
 // ─── JOB CARD ────────────────────────────────────────────────────────────────
 function JobCard({ job, onNavigate }) {
-  const [hovered, setHovered] = useState(false);
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
-        padding: 24, display: "flex", flexDirection: "column",
-        justifyContent: "space-between", gap: 0,
-        boxShadow: hovered ? "0 4px 16px rgba(0,0,0,0.1)" : "0 1px 2px rgba(0,0,0,0.05)",
-        transform: hovered ? "translateY(-2px)" : "none",
-        transition: "all 0.2s", cursor: "pointer",
-      }}>
-      {/* Header */}
-      <div style={{ paddingBottom: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div style={{ flex: 1, paddingRight: 12 }}>
-            <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 600, color: "#000", fontFamily: "'Manrope', sans-serif", lineHeight: 1.4 }}>{job.title}</h3>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontWeight: 600, fontSize: 14, color: "#000", fontFamily: "'Inter', sans-serif" }}>{job.client}</span>
-              {job.verified && <span style={{ fontSize: 12, color: C.tealDark }}>✓</span>}
-              <span style={{ color: C.textMuted, fontSize: 14 }}>·</span>
-              <span style={{ fontSize: 14, color: C.textBody, fontFamily: "'Inter', sans-serif" }}>{job.posted}</span>
+      onClick={() => onNavigate("jobdetail", { id: job.id })}
+      className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 flex flex-col justify-between gap-6 hover:shadow-xl transition-all cursor-pointer group"
+    >
+      <div className="space-y-4">
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
+            <h3 className="text-xl font-black text-primary uppercase tracking-tight group-hover:text-tertiary-container transition-colors">{job.title}</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{job.client}</span>
+              {job.verified && <span className="material-symbols-outlined text-tertiary-fixed-dim text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>}
+              <span className="text-slate-300">·</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">{job.posted}</span>
             </div>
           </div>
-          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: C.textMuted }}>🔖</button>
+          <button className="text-slate-300 hover:text-primary transition-colors">
+            <span className="material-symbols-outlined">bookmark</span>
+          </button>
         </div>
-      </div>
 
-      {/* Budget + Type */}
-      <div style={{ paddingBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 14, color: "#000", fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>💰 {job.budget}</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-surface-container px-3 py-1 rounded-lg">
+            <span className="material-symbols-outlined text-sm text-primary">payments</span>
+            <span className="text-xs font-black text-primary uppercase">{job.budget}</span>
           </div>
-          <span style={{
-            background: job.type === "Fixed Price" ? C.skillTag : "#E3E2E5",
-            color: job.type === "Fixed Price" ? C.skillTagText : C.textDark,
-            borderRadius: 8, padding: "2px 8px", fontSize: 12, fontWeight: 700,
-            letterSpacing: "0.3px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif",
-          }}>{job.type}</span>
+          <span className="bg-primary text-on-primary px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
+            {job.type}
+          </span>
         </div>
-      </div>
 
-      {/* Description */}
-      <div style={{ paddingBottom: 24 }}>
-        <p style={{ margin: 0, fontSize: 16, color: C.textBody, lineHeight: 1.5, fontFamily: "'Inter', sans-serif" }}>{job.desc}</p>
-      </div>
+        <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">
+          {job.desc}
+        </p>
 
-      {/* Skills */}
-      <div style={{ paddingBottom: 32 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="flex gap-2 flex-wrap">
           {job.skills.map(s => (
-            <span key={s} style={{
-              background: "#F5F3F6", border: `1px solid ${C.border}`, borderRadius: 8,
-              padding: "4px 8px", fontSize: 12, fontWeight: 500,
-              color: C.textBody, fontFamily: "'Inter', sans-serif",
-            }}>{s}</span>
+            <SkillTag key={s} label={s} />
           ))}
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 12 }}>
-        <Btn variant="outlined" style={{ flex: 1 }} onClick={() => onNavigate("jobdetail", { id: job.id })}>View Details</Btn>
-        <Btn style={{ width: 117 }} onClick={() => onNavigate("submit", { jobId: job.id })}>Apply Now</Btn>
+      <div className="flex gap-3 pt-4 border-t border-outline-variant/10 mt-auto">
+        <Btn variant="outlined" className="flex-1" onClick={(e) => { e.stopPropagation(); onNavigate("jobdetail", { id: job.id }); }}>View Details</Btn>
+        <Btn className="flex-1" onClick={(e) => { e.stopPropagation(); onNavigate("submit", { jobId: job.id }); }}>Bid Now</Btn>
       </div>
     </div>
   );
@@ -105,133 +85,113 @@ export default function BrowseJobs({ onNavigate, params, role }) {
     return jobs.map(j => ({
       id: j.id,
       title: j.title,
-      client: `Client ${j.client_id?.substring(0,4) || ''}`, // Mocks name since we don't fetch users
-      verified: true, // mock
+      client: `Client ${j.client_id?.substring(0,4) || ''}`,
+      verified: true,
       budget: j.budget_max ? `PKR ${j.budget_min || 0} – ${j.budget_max}` : `PKR ${j.budget_min || 0}+`,
       posted: new Date(j.created_at).toLocaleDateString(),
       type: j.project_type === 'fixed_price' ? "Fixed Price" : "Hourly",
-      skills: Array.isArray(j.required_skills) ? j.required_skills.map(s => {
-        if (typeof s === 'string') return s;
-        if (s && s.tag && typeof s.tag.name === 'string') return s.tag.name;
-        if (s && typeof s.name === 'string') return s.name;
-        if (s && typeof s.tag === 'string') return s.tag;
-        return 'Skill';
-      }).slice(0, 3) : ["Skill"],
+      skills: Array.isArray(j.required_skills) ? j.required_skills.map(s => typeof s === 'string' ? s : (s.tag?.name || s.name || s.tag || 'Skill')).slice(0, 3) : ["Skill"],
       desc: j.description || "",
     }));
   }, [jobs]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Inter', sans-serif", background: C.bgPage }}>
-      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <Navbar activeLink="jobs" onNavigate={onNavigate} role={role} />
+    <div className="flex flex-col min-h-screen">
+      <div className="space-y-10">
+        {/* Page Header */}
+        <div className="border-l-4 border-primary pl-6">
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tight">Open Opportunities</h1>
+          <p className="text-slate-500 font-medium italic">High-authority project listings for editorial experts.</p>
+        </div>
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <Sidebar activeItem="jobs" onNavigate={onNavigate} role={role} />
-
-        {/* Main Content */}
-        <main style={{ flex: 1, overflowY: "auto", padding: 32, display: "flex", flexDirection: "column", gap: 32 }}>
-
-          {/* Page Header */}
-          <div>
-            <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 700, color: "#000", fontFamily: "'Manrope', sans-serif" }}>Browse Jobs</h1>
-            <p style={{ margin: 0, fontSize: 16, color: C.textBody, fontFamily: "'Inter', sans-serif" }}>Find your next project</p>
-          </div>
-
-          {/* Filter Bar */}
-          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 24px 25px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Row 1: Search + Dropdowns + Button */}
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              {/* Search */}
-              <div style={{ position: "relative", flex: 1, maxWidth: 336 }}>
-                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#74777F", fontSize: 14 }}>🔍</span>
+        {/* Filter Bar */}
+        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl p-8 shadow-sm space-y-6">
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[300px] space-y-2">
+              <label className="text-[10px] font-black tracking-widest uppercase text-slate-400">Search Keywords</label>
+              <div className="relative">
                 <input value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Search keywords..."
-                  style={{ width: "100%", height: 44, padding: "0 16px 0 40px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14, color: C.textBody, fontFamily: "'Inter', sans-serif", boxSizing: "border-box", outline: "none" }} />
+                  placeholder="e.g. React Developer, UI Designer..."
+                  className="w-full bg-surface-container-low border-0 ring-1 ring-outline-variant/15 rounded-xl px-4 py-3 pl-10 text-sm focus:ring-2 focus:ring-tertiary outline-none transition-all" />
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
               </div>
-              {/* Dropdowns */}
-              {[
-                { label: "Category",     val: category,     set: setCategory,    opts: ["Web Dev","Design","Writing","Marketing","Data"] },
-                { label: "Budget",       val: budget,       set: setBudget,      opts: ["< $500","$500-$2k","$2k-$5k","> $5k"] },
-                { label: "Project Type", val: projectType,  set: setProjectType, opts: ["Fixed Price","Hourly"] },
-              ].map(({ label, val, set, opts }) => (
-                <select key={label} value={val} onChange={e => set(e.target.value)}
-                  style={{ height: 44, padding: "0 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14, color: val ? C.textBody : "#74777F", fontFamily: "'Inter', sans-serif", cursor: "pointer", minWidth: 160, background: C.white }}>
-                  <option value="">{label}</option>
-                  {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              ))}
-              <Btn style={{ height: 44, padding: "0 32px", flexShrink: 0 }}>Search</Btn>
             </div>
 
-            {/* Row 2: Quick filter chips */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#74777F", letterSpacing: "0.6px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif" }}>FILTERS:</span>
-              {["Remote", "Full-Time", "Part-Time"].map(chip => (
-                <button key={chip} style={{
-                  background: C.chipBg, borderRadius: 9999, padding: "4px 12px",
-                  fontSize: 12, fontWeight: 500, color: C.chipText,
-                  border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif",
-                }}>{chip}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* Results Count + Sort */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 20, fontWeight: 600, color: C.textDark, fontFamily: "'Manrope', sans-serif" }}>{meta?.total || 0} jobs found</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14, color: "#74777F", fontFamily: "'Inter', sans-serif" }}>Sort by:</span>
-              <select style={{ height: 36, padding: "0 40px 0 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontWeight: 600, color: "#000", fontFamily: "'Inter', sans-serif", cursor: "pointer", background: C.white }}>
-                <option>Most Relevant</option>
-                <option>Newest First</option>
-                <option>Budget: High to Low</option>
-                <option>Budget: Low to High</option>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black tracking-widest uppercase text-slate-400">Category</label>
+              <select value={category} onChange={e => setCategory(e.target.value)}
+                className="w-full bg-surface-container-low border-0 ring-1 ring-outline-variant/15 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-tertiary outline-none transition-all cursor-pointer min-w-[160px]">
+                <option value="">All Categories</option>
+                {["Web Dev","Design","Writing","Marketing","Data"].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
-          </div>
 
-          {/* 2×2 Job Grid */}
-          {loading ? (
-            <div style={{ padding: 40, textAlign: "center", fontFamily: "'Inter', sans-serif" }}>Loading jobs...</div>
-          ) : error ? (
-            <div style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'Inter', sans-serif" }}>Error: {error}</div>
-          ) : mappedJobs.length === 0 ? (
-            <div style={{ padding: 40, textAlign: "center", color: "#74777F", fontFamily: "'Inter', sans-serif" }}>No jobs found.</div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-              {mappedJobs.map(job => <JobCard key={job.id} job={job} onNavigate={onNavigate} />)}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black tracking-widest uppercase text-slate-400">Budget Range</label>
+              <select value={budget} onChange={e => setBudget(e.target.value)}
+                className="w-full bg-surface-container-low border-0 ring-1 ring-outline-variant/15 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-tertiary outline-none transition-all cursor-pointer min-w-[160px]">
+                <option value="">Any Budget</option>
+                {["< $500","$500-$2k","$2k-$5k","> $5k"].map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
             </div>
-          )}
 
-          {/* Pagination Block */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, padding: "32px 0" }}>
-            <button 
-              disabled={page === 1}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, cursor: page === 1 ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, opacity: page === 1 ? 0.5 : 1 }}>‹</button>
-            
-            {[1, 2, 3, 4].map(p => (
-              <button 
-                key={p} 
-                onClick={() => setPage(p)}
-                style={{
-                  width: 40, height: 40, border: `1px solid ${page === p ? C.navy : C.border}`,
-                  borderRadius: 8, background: page === p ? C.navy : C.white,
-                  color: page === p ? C.white : C.textDark, cursor: "pointer",
-                  fontSize: 16, fontWeight: page === p ? 700 : 400, fontFamily: "'Inter', sans-serif",
-                }}>{p}</button>
-            ))}
-            <span style={{ color: "#74777F", fontSize: 16 }}>…</span>
-            <button 
-              onClick={() => setPage(10)}
-              style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, fontSize: 16, cursor: "pointer", color: C.textDark }}>10</button>
-            
-            <button 
-              onClick={() => setPage(p => p + 1)}
-              style={{ width: 40, height: 40, border: `1px solid ${C.border}`, borderRadius: 8, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700 }}>›</button>
+            <Btn className="h-[46px] px-10">Search</Btn>
           </div>
-        </main>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-outline-variant/10">
+            <span className="text-[10px] font-black tracking-widest uppercase text-slate-400">Expertise Tags:</span>
+            {["Remote", "Full-Time", "Fixed Budget"].map(chip => (
+              <button key={chip} className="px-3 py-1 rounded-full bg-surface-container text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-all">
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results Count + Sort */}
+        <div className="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Showing <strong className="text-primary">{meta?.total || 0}</strong> active job postings</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sort By:</span>
+            <select className="bg-transparent border-0 text-[10px] font-black uppercase tracking-widest text-primary focus:ring-0 outline-none cursor-pointer">
+              <option>Relevance</option>
+              <option>Newest First</option>
+              <option>Budget: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Job Grid */}
+        {loading ? (
+          <div className="py-20 text-center font-black uppercase tracking-widest text-slate-300">Loading Opportunities...</div>
+        ) : error ? (
+          <div className="py-20 text-center text-error font-black uppercase tracking-widest">Connection Error: {error}</div>
+        ) : mappedJobs.length === 0 ? (
+          <div className="py-20 text-center text-slate-400 font-black uppercase tracking-widest">No matching jobs found.</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {mappedJobs.map(job => <JobCard key={job.id} job={job} onNavigate={onNavigate} />)}
+          </div>
+        )}
+
+        {/* Pagination */}
+        <div className="flex justify-center items-center gap-4 py-10">
+          <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-lg border border-outline-variant/10 flex items-center justify-center text-primary disabled:opacity-30 hover:bg-surface-container transition-all">
+            <span className="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          
+          <div className="flex gap-2">
+            {[1, 2, 3].map(p => (
+              <button key={p} onClick={() => setPage(p)} className={`w-10 h-10 rounded-lg text-[10px] font-black transition-all ${page === p ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container text-primary hover:bg-surface-container-high'}`}>
+                {p}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={() => setPage(p => p + 1)} className="w-10 h-10 rounded-lg border border-outline-variant/10 flex items-center justify-center text-primary hover:bg-surface-container transition-all">
+            <span className="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
       </div>
     </div>
   );

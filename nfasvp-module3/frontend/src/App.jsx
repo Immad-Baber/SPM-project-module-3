@@ -29,6 +29,100 @@ import { setAuthToken, loadStoredToken, checkHealth } from "./services/api.js";
 import { getDevToken } from "./services/devAuth.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Components extracted from template
+// ─────────────────────────────────────────────────────────────────────────────
+
+function TopNavBar({ onNavigate, role }) {
+  return (
+    <header className="h-16 flex justify-between items-center w-full px-8 sticky top-0 z-50 backdrop-blur-md bg-opacity-90 bg-primary border-b border-primary-container/20">
+      <div className="flex items-center gap-10">
+        <div className="flex flex-col cursor-pointer" onClick={() => onNavigate("home")}>
+          <h1 className="text-lg font-black text-white uppercase tracking-tight leading-none">Nexus Pro</h1>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-tertiary-fixed-dim">Professional</p>
+        </div>
+        <nav className="hidden xl:flex items-center gap-8">
+          <button onClick={() => onNavigate("home")} className="text-[11px] font-black uppercase tracking-widest text-white border-b-2 border-tertiary-fixed-dim pb-1">Overview</button>
+          <button onClick={() => onNavigate("browse")} className="text-[11px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition-colors">Marketplace</button>
+          <button onClick={() => onNavigate("myprojects")} className="text-[11px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition-colors">Projects</button>
+          <button onClick={() => onNavigate("globalsearch")} className="text-[11px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition-colors">Search</button>
+        </nav>
+      </div>
+      <div className="flex-grow max-w-xl px-12 hidden md:block">
+        <div className="relative">
+          <input className="w-full bg-primary-container/50 text-white placeholder-slate-400 text-sm px-4 py-2 pl-10 rounded-lg border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-tertiary-fixed-dim transition-all" placeholder="Search insights and assets..." type="text"/>
+          <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
+          <button onClick={() => onNavigate("notifications")} className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all relative">
+            <span className="material-symbols-outlined">notifications</span>
+            <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+          </button>
+          <button className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all">
+            <span className="material-symbols-outlined">help_outline</span>
+          </button>
+        </div>
+        <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] font-bold text-white uppercase tracking-wider">{role === 'client' ? 'Client Admin' : 'Expert Freelancer'}</p>
+            <p className="text-[9px] font-medium text-slate-400 uppercase">Enterprise Mode</p>
+          </div>
+          <img alt="Profile" className="w-9 h-9 rounded-lg border border-white/20 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtwC6ZvX7GXW7EW5hevkPqMO6D95liKdTdhwlvx3v18pOpo93ZHhS0xAbYzYA-PTeYjjEsA7TDRm0W9Hvnl64vqVk00xVYJlN0kqCyZEKSBB3pdk4EmpY2urQH0TEc61HHruthRJuRhlJaGhCx_guVJzedsWuyynwDwFGILeeeof4ePBzOSGDutowFDU2i4L_9mmWN4uHBhs6CB_oUJnbCgJC-m3F_MoN5PWrUB_My5QgGSLuatV73mQC_Z78bVxt_igpzDaGCc48"/>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function SideNavBar({ onNavigate, role }) {
+  const menuItems = role === 'client' ? [
+    { key: "home", label: "Overview", icon: "dashboard" },
+    { key: "myprojects", label: "Track Projects", icon: "hub" },
+    { key: "myjobs", label: "Manage Jobs", icon: "folder_special" },
+    { key: "browse", label: "Hire Talent", icon: "query_stats" },
+    { key: "createjob", label: "Post a Job", icon: "article" },
+  ] : [
+    { key: "home", label: "Overview", icon: "dashboard" },
+    { key: "myprojects", label: "Active Projects", icon: "hub" },
+    { key: "mygigs", label: "Manage Gigs", icon: "folder_special" },
+    { key: "browsejobs", label: "Find Work", icon: "query_stats" },
+    { key: "create", label: "Create Gig", icon: "article" },
+  ];
+
+  return (
+    <aside className="fixed left-0 top-16 h-[calc(100vh-64px)] flex flex-col p-4 bg-[#f0f3ff] dark:bg-[#001736] bg-gradient-to-b from-[#f0f3ff] to-[#f9f9ff] dark:from-[#001736] dark:to-[#002b5b] w-64 z-40 border-r border-outline-variant/10">
+      <nav className="flex-grow space-y-1">
+        <div className="px-3 mb-4">
+          <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Navigation</p>
+        </div>
+        {menuItems.map(item => (
+          <button key={item.key} onClick={() => onNavigate(item.key)} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:text-primary hover:bg-[#dee8ff] transition-all duration-200 rounded-lg">
+            <span className="material-symbols-outlined">{item.icon}</span>
+            <span className="text-[11px] font-bold tracking-wider uppercase">{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="mt-auto space-y-4">
+        <button onClick={() => onNavigate(role === 'client' ? "createjob" : "create")} className="w-full py-3 bg-primary text-on-primary rounded-lg font-bold text-[11px] uppercase tracking-widest shadow-sm hover:opacity-90 active:scale-[0.98] transition-all">
+          {role === 'client' ? 'Create Project' : 'List New Service'}
+        </button>
+        <div className="pt-4 border-t border-outline-variant/10 space-y-1">
+          <button onClick={() => onNavigate("switch_role")} className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-primary transition-colors">
+            <span className="material-symbols-outlined">sync_alt</span>
+            <span className="text-[11px] font-bold tracking-wider uppercase">Switch Role</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-primary transition-colors">
+            <span className="material-symbols-outlined">settings</span>
+            <span className="text-[11px] font-bold tracking-wider uppercase">Settings</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Screen registry — maps route keys → components
 // ─────────────────────────────────────────────────────────────────────────────
 const SCREENS = {
@@ -88,13 +182,6 @@ function Home({ onNavigate, backendStatus, role }) {
 
   const activeCards = role === "freelancer" ? freelancerCards : clientCards;
 
-  const cardStyle = {
-    background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12,
-    padding: "24px", display: "flex", flexDirection: "column", gap: 12,
-    cursor: "pointer", transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-    fontFamily: "'DM Sans', sans-serif", boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-  };
-
   const stCfg = {
     checking: { dot: "#D97706", text: "#92400E", label: "System Check..." },
     online:   { dot: "#16A34A", text: "#14532D", label: "Ready & Connected" },
@@ -103,91 +190,68 @@ function Home({ onNavigate, backendStatus, role }) {
   const st = stCfg[backendStatus] || stCfg.checking;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F8FAFC", fontFamily: "'DM Sans', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-      {/* Hero Header */}
-      <div style={{ background: role === 'client' ? "#1E40AF" : "#065F46", color: "#fff", padding: "48px 40px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="space-y-8 max-w-7xl">
+      <section className="space-y-8">
+        <div className="flex justify-between items-end">
           <div>
-            <h1 style={{ margin: 0, fontSize: 40, fontWeight: 800, letterSpacing: "-1.5px" }}>
-              Welcome, {role === 'client' ? 'Business Client' : 'Expert Freelancer'}
-            </h1>
-            <p style={{ margin: "12px 0 0", fontSize: 18, opacity: 0.9, fontWeight: 400 }}>
-              {role === 'client' ? 'Manage your team and projects from one central hub.' : 'Scale your freelance business with verified project management.'}
-            </p>
+            <span className="text-[0.6875rem] font-bold tracking-[0.05em] uppercase text-on-tertiary-container mb-2 block">System Analytics</span>
+            <h2 className="text-3xl font-extrabold tracking-tight text-primary">Welcome, {role === 'client' ? 'Business Client' : 'Expert Freelancer'}</h2>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: "12px 20px", display: "inline-flex", alignItems: "center", gap: 10, backdropFilter: "blur(10px)" }}>
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: st.dot, boxShadow: `0 0 10px ${st.dot}` }} />
-              <span style={{ fontSize: 14, fontWeight: 700 }}>{st.label}</span>
-            </div>
-            <div style={{ marginTop: 16 }}>
-               <button onClick={() => onNavigate("switch_role")} style={{ background: "#fff", color: role === 'client' ? "#1E40AF" : "#065F46", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "transform 0.1s" }} onMouseDown={e => e.currentTarget.style.transform = "scale(0.95)"} onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}>
-                 Switch to {role === 'client' ? 'Freelancer' : 'Client'} Mode
-               </button>
-            </div>
+          <div className="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-full">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: st.dot }}></span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">{st.label}</span>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div style={{ maxWidth: 1200, margin: "-30px auto 40px", padding: "0 24px", position: "relative", zIndex: 3 }}>
-        
-        {/* Quick Stats Placeholder */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 32 }}>
-           {[
-             { label: "Active Projects", value: "4", color: "#3B82F6" },
-             { label: "Unread Messages", value: "2", color: "#10B981" },
-             { label: "Pending Payments", value: "PKR 12k", color: "#F59E0B" }
-           ].map(stat => (
-             <div key={stat.label} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "20px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-               <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.5px" }}>{stat.label}</div>
-               <div style={{ fontSize: 24, fontWeight: 800, color: stat.color, marginTop: 4 }}>{stat.value}</div>
-             </div>
-           ))}
-        </div>
-
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-           <span>{role === 'client' ? '🏢' : '👩‍💻'}</span>
-           Explore {role === 'client' ? 'Client' : 'Freelancer'} Workspace
-        </h2>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-          {activeCards.map(({ key, label, icon, desc }) => (
-            <div
-              key={key}
-              onClick={() => onNavigate(key)}
-              style={cardStyle}
-              onMouseOver={e => { e.currentTarget.style.borderColor = role === 'client' ? "#3B82F6" : "#10B981"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)"; }}
-            >
-              <div style={{ width: 48, height: 48, background: "#F1F5F9", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
-                {icon}
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 relative overflow-hidden">
+            <div className="flex justify-between items-start mb-8">
               <div>
-                <div style={{ fontWeight: 800, fontSize: 18, color: "#0F172A", marginBottom: 4 }}>{label}</div>
-                <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.5 }}>{desc}</div>
+                <h3 className="text-lg font-bold text-primary">Overview Dashboard</h3>
+                <p className="text-sm text-slate-500">Manage your workspace from one central hub</p>
+              </div>
+              <button onClick={() => onNavigate("switch_role")} className="px-4 py-2 bg-primary-fixed text-on-primary-fixed text-[10px] font-bold rounded-full uppercase tracking-wider hover:brightness-95 transition-all">
+                Switch to {role === 'client' ? 'Freelancer' : 'Client'} Mode
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {activeCards.map(({ key, label, icon, desc }) => (
+                <div key={key} onClick={() => onNavigate(key)} className="p-4 bg-surface-container-low rounded-xl border border-transparent hover:border-primary-fixed-dim hover:shadow-md transition-all cursor-pointer group">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">{icon}</span>
+                    <h4 className="font-bold text-primary group-hover:text-tertiary-container transition-colors">{label}</h4>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-primary text-white p-6 rounded-xl relative overflow-hidden">
+              <div className="relative z-10">
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Active Projects</span>
+                <p className="text-3xl font-black mt-1">4 Running</p>
+              </div>
+              <div className="absolute -right-4 -bottom-4 opacity-10">
+                <span className="material-symbols-outlined text-8xl" style={{ fontVariationSettings: "'FILL' 1" }}>rocket_launch</span>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Integration Footer */}
-        <div style={{ marginTop: 48, borderTop: "1px solid #E2E8F0", paddingTop: 32, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-           <div style={{ display: "flex", gap: 32 }}>
-              <div style={{ fontSize: 13, color: "#64748B" }}>
-                <strong style={{ color: "#0F172A" }}>Module 3</strong> - Gig & Proposal Lifecycle
+            <div className="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Unread Notifications</span>
+              <div className="flex items-center gap-4 mt-2">
+                <p className="text-2xl font-black text-primary">2</p>
+                <button onClick={() => onNavigate("notifications")} className="text-[10px] font-bold uppercase text-tertiary-container hover:underline">View All</button>
               </div>
-              <div style={{ fontSize: 13, color: "#64748B" }}>
-                <strong style={{ color: "#0F172A" }}>Module 4</strong> - Admin & Dispute (Linked)
-              </div>
-           </div>
-           <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8" }}>
-              © 2026 NFASVP PLATFORM
-           </div>
+            </div>
+            <div className="bg-tertiary-container text-white p-6 rounded-xl border border-outline-variant/10">
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Wallet Balance</span>
+              <p className="text-2xl font-black mt-1">PKR 12,400</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
@@ -196,31 +260,30 @@ function Home({ onNavigate, backendStatus, role }) {
 // Role Selection Screen
 // ─────────────────────────────────────────────────────────────────────────────
 function RoleSelection({ onSelectRole }) {
-  const cardStyle = {
-    background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10,
-    padding: "30px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
-    cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s",
-    fontFamily: "'DM Sans', sans-serif", width: "100%", textAlign: "center"
-  };
-
   return (
-    <div style={{ minHeight: "100vh", background: "#F9F9FF", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 40, color: "#0F172A", letterSpacing: "-1px" }}>Select Your Role</h1>
-      <div style={{ display: "flex", gap: 20, maxWidth: 600, width: "100%", padding: "0 20px" }}>
-        <div style={cardStyle} onClick={() => onSelectRole("freelancer")}
-             onMouseOver={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-             onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
-          <span style={{ fontSize: 48 }}>👩‍💻</span>
-          <span style={{ fontWeight: 700, fontSize: 20, color: "#0F172A" }}>I am a Freelancer</span>
-          <span style={{ fontSize: 14, color: "#64748B" }}>Create gigs, browse jobs, and submit proposals.</span>
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6">
+      <div className="mb-12 text-center">
+        <h1 className="text-4xl font-black text-primary uppercase tracking-tight mb-2">Nexus Pro</h1>
+        <p className="text-sm font-bold tracking-[0.3em] uppercase text-tertiary-container">Professional Ecosystem</p>
+      </div>
+      
+      <h2 className="text-2xl font-extrabold mb-8 text-primary tracking-tight">Select Your Perspective</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+        <div onClick={() => onSelectRole("freelancer")} className="bg-surface-container-lowest p-10 rounded-2xl border-2 border-transparent hover:border-tertiary-fixed-dim hover:shadow-2xl transition-all cursor-pointer text-center group">
+          <div className="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+            <span className="text-4xl">👩‍💻</span>
+          </div>
+          <h3 className="text-xl font-black text-primary uppercase mb-3">Expert Freelancer</h3>
+          <p className="text-sm text-slate-500 leading-relaxed">Create professional gigs, browse high-value jobs, and scale your business with enterprise tools.</p>
         </div>
-        <div style={cardStyle} onClick={() => onSelectRole("client")}
-             onMouseOver={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-             onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
-          <span style={{ fontSize: 48 }}>🏢</span>
-          <span style={{ fontWeight: 700, fontSize: 20, color: "#0F172A" }}>I am a Client</span>
-          <span style={{ fontSize: 14, color: "#64748B" }}>Browse gigs, post jobs, and accept proposals.</span>
+        
+        <div onClick={() => onSelectRole("client")} className="bg-surface-container-lowest p-10 rounded-2xl border-2 border-transparent hover:border-primary-fixed-dim hover:shadow-2xl transition-all cursor-pointer text-center group">
+          <div className="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+            <span className="text-4xl">🏢</span>
+          </div>
+          <h3 className="text-xl font-black text-primary uppercase mb-3">Business Client</h3>
+          <p className="text-sm text-slate-500 leading-relaxed">Hire top-tier talent, post complex project requirements, and manage your editorial workflow.</p>
         </div>
       </div>
     </div>
@@ -289,10 +352,23 @@ export default function App() {
     return <RoleSelection onSelectRole={handleSelectRole} />;
   }
 
-  if (screen === "home") return <Home onNavigate={onNavigate} backendStatus={backendStatus} role={role} />;
+  const Screen = screen === "home" ? Home : SCREENS[screen];
+  const activeComponent = Screen ? <Screen onNavigate={onNavigate} params={screenParams} role={role} backendStatus={backendStatus} /> : <Home onNavigate={onNavigate} backendStatus={backendStatus} role={role} />;
 
-  const Screen = SCREENS[screen];
-  if (!Screen) return <Home onNavigate={onNavigate} backendStatus={backendStatus} role={role} />;
-
-  return <Screen onNavigate={onNavigate} params={screenParams} role={role} />;
+  return (
+    <div className="flex flex-col min-h-screen bg-surface">
+      <TopNavBar onNavigate={onNavigate} role={role} />
+      <div className="flex flex-1">
+        <SideNavBar onNavigate={onNavigate} role={role} />
+        <main className="ml-64 w-full flex flex-col min-h-screen">
+          <div className="p-8 lg:p-12">
+            {activeComponent}
+          </div>
+          <footer className="mt-auto px-8 py-10 bg-surface-container-low text-center border-t border-outline-variant/10">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Nexus Professional © 2026 • Editorial Engine Design Protocol v1.0</p>
+          </footer>
+        </main>
+      </div>
+    </div>
+  );
 }

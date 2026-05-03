@@ -1,4 +1,4 @@
-// ─── COLOR TOKENS ────────────────────────────────────────────────────────────
+// ─── COLOR TOKENS (Deprecated in favor of Tailwind) ────────────────────────────
 export const C = {
   navy: "#001736",
   black: "#000000",
@@ -6,169 +6,43 @@ export const C = {
   bgPage: "#F9F9FF",
   bgAlt: "#F0F3FF",
   bgCard: "#FFFFFF",
-  textPrimary: "#1B1B1D",
-  textSecondary: "#45464D",
-  textMuted: "#76777D",
-  border: "#C6C6CD",
+  textPrimary: "#111c2d",
+  textSecondary: "#43474f",
+  textMuted: "#747780",
+  border: "#c4c6d0",
   green: "#10B981",
-  greenDark: "#15803D",
-  greenBg: "#DCFCE7",
-  greenBorder: "#BBF7D0",
-  red: "#BA1A1A",
-  redBg: "#FEF2F2",
-  redNote: "#FFDAD6",
-  redDark: "#93000A",
-  badgeBg: "#DCE0E4",
-  badgeText: "#5E6367",
+  greenDark: "#005049",
+  greenBg: "#89f5e7",
+  greenBorder: "#6bd8cb",
+  red: "#ba1a1a",
+  redBg: "#ffdad6",
+  redNote: "#ffdad6",
+  redDark: "#93000a",
+  badgeBg: "#dee8ff",
+  badgeText: "#264778",
   yellow: "#FBBF24",
-  chipBg: "#F6F3F5",
-  navBg: "#1B1B1D",
-  teal: "#80F5E7",
+  chipBg: "#f0f3ff",
+  navBg: "#001736",
+  teal: "#89f5e7",
 };
 
-// ─── NAVBAR ──────────────────────────────────────────────────────────────────
-export function Navbar({ onNavigate, currentScreen, role }) {
-  const freelancerLinks = [
-    { label: "Browse Jobs", key: "browsejobs" },
-    { label: "My Gigs",     key: "mygigs"     },
-    { label: "My Projects", key: "myprojects" },
-    { label: "Proposals",   key: "myproposals" },
-  ];
-
-  const clientLinks = [
-    { label: "Browse Gigs",  key: "browse"    },
-    { label: "My Jobs",      key: "myjobs"    },
-    { label: "My Projects", key: "myprojects" },
-    { label: "Post Job",    key: "createjob"  },
-  ];
-
-  const links = role === "client" ? clientLinks : freelancerLinks;
-
-  return (
-    <nav style={{
-      width: "100%", height: 64, background: C.navBg,
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "0 24px", boxSizing: "border-box",
-      borderBottom: `2px solid ${C.black}`,
-      position: "sticky", top: 0, zIndex: 100, flexShrink: 0,
-    }}>
-      {/* Left — Hamburger + Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <button onClick={() => onNavigate && onNavigate("home")} style={{
-          background: "none", border: "none", cursor: "pointer",
-          display: "flex", flexDirection: "column", gap: 5, padding: 6,
-        }}>
-          {[0, 1, 2].map(i => (
-            <span key={i} style={{ display: "block", width: 26, height: 3, background: C.white, borderRadius: 2 }} />
-          ))}
-        </button>
-        <button onClick={() => onNavigate && onNavigate("home")} style={{
-          background: "none", border: "none", cursor: "pointer",
-          fontFamily: "'DM Sans', sans-serif", fontWeight: 700,
-          fontSize: 18, color: C.white, letterSpacing: "-0.5px",
-          textDecoration: "none",
-        }}>
-          GigMarket
-        </button>
-      </div>
-
-      {/* Right — Nav Links */}
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        {links.map(({ label, key }) => {
-          const isActive = currentScreen === key;
-          return (
-            <button key={key}
-              onClick={() => onNavigate && onNavigate(key)}
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? C.teal : C.white,
-                padding: "20px 12px",
-                borderBottom: isActive ? `2px solid ${C.teal}` : "2px solid transparent",
-                opacity: isActive ? 1 : 0.8,
-                textDecoration: "none",
-                transition: "all 0.15s",
-              }}
-              onMouseOver={e => {
-                if (!isActive) {
-                  e.currentTarget.style.opacity = "1";
-                }
-              }}
-              onMouseOut={e => {
-                if (!isActive) {
-                  e.currentTarget.style.opacity = "0.8";
-                }
-              }}
-            >{label}</button>
-          );
-        })}
-
-        {/* FAQ */}
-        <button style={{
-          background: "none", border: "none", cursor: "pointer",
-          fontSize: 13, fontWeight: 500, padding: "20px 12px",
-          fontFamily: "'DM Sans', sans-serif", color: C.white,
-          opacity: 0.8, borderBottom: "2px solid transparent",
-          textDecoration: "none",
-        }}>FAQ</button>
-
-        {/* Search */}
-        <button onClick={() => onNavigate("search")} style={{
-          background: "none", border: "none", cursor: "pointer",
-          fontSize: 18, padding: "0 10px", color: C.white, opacity: 0.8
-        }}>🔍</button>
-
-        {/* Notifications */}
-        <button onClick={() => onNavigate("notifications")} style={{
-          background: "none", border: "none", cursor: "pointer",
-          fontSize: 18, padding: "0 10px", color: C.white, opacity: 0.8
-        }}>🔔</button>
-
-        {/* Avatar */}
-        <div 
-          onClick={() => onNavigate("switch_role")}
-          title="Switch Role"
-          style={{
-            width: 34, height: 34, borderRadius: "50%",
-            background: role === 'client' ? "#3B82F6" : "#10B981", border: "1px solid rgba(255,255,255,0.2)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: C.white, fontSize: 13, fontWeight: 700,
-            cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-            marginLeft: 8,
-          }}
-        >
-          {role === 'client' ? 'CL' : 'FL'}
-        </div>
-      </div>
-    </nav>
-  );
-}
+// ─── NAVBAR (Legacy - Now managed by App.jsx) ──────────────────────────────────
+export function Navbar() { return null; }
 
 // ─── STICKY NOTE ─────────────────────────────────────────────────────────────
 export function StickyNote({ text }) {
   return (
-    <div style={{
-      background: C.redNote, borderLeft: `4px solid ${C.red}`,
-      borderRadius: "0 4px 4px 0", padding: "10px 14px",
-      fontSize: 12, color: C.redDark, fontWeight: 500,
-      fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5,
-      boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-    }}>{text}</div>
+    <div className="bg-red-note border-l-4 border-error rounded-r-lg p-4 text-xs font-medium text-on-error-container leading-relaxed shadow-sm my-4">
+      {text}
+    </div>
   );
 }
 
 // ─── VERIFIED BADGE ──────────────────────────────────────────────────────────
 export function VerifiedBadge() {
   return (
-    <span style={{
-      background: C.greenBg, border: `1px solid ${C.greenBorder}`,
-      borderRadius: 3, padding: "2px 7px", fontSize: 9,
-      fontWeight: 700, color: C.greenDark, letterSpacing: "0.5px",
-      textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 3,
-      fontFamily: "'DM Sans', sans-serif",
-    }}>
-      <span style={{ fontSize: 8 }}>✓</span> Skill Verified
+    <span className="bg-tertiary-fixed text-on-tertiary-fixed px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1 border border-tertiary-fixed-dim/20">
+      <span className="material-symbols-outlined text-[10px] font-black">verified</span> Verified
     </span>
   );
 }
@@ -176,19 +50,14 @@ export function VerifiedBadge() {
 // ─── STATUS BADGE ────────────────────────────────────────────────────────────
 export function StatusBadge({ status }) {
   const cfg = {
-    Live:   { bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.25)", color: C.green,   dot: C.green   },
-    Draft:  { bg: "#F1F5F9",              border: C.border,                color: "#64748B", dot: "#94A3B8" },
-    Paused: { bg: "#FEF9C3",              border: "#FDE68A",               color: "#B45309", dot: "#D97706" },
+    Live:   "bg-tertiary-fixed text-on-tertiary-fixed border-tertiary-fixed-dim/30",
+    Draft:  "bg-surface-container-high text-on-surface-variant border-outline-variant/30",
+    Paused: "bg-error-container text-on-error-container border-error/20",
   };
-  const s = cfg[status] || cfg.Draft;
+  const style = cfg[status] || cfg.Draft;
   return (
-    <span style={{
-      background: s.bg, border: `1px solid ${s.border}`, borderRadius: 12,
-      padding: "3px 10px", fontSize: 11, fontWeight: 700, color: s.color,
-      display: "inline-flex", alignItems: "center", gap: 5,
-      fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.4px",
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot, display: "inline-block" }} />
+    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${style} flex items-center gap-2`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
       {status}
     </span>
   );
@@ -197,34 +66,34 @@ export function StatusBadge({ status }) {
 // ─── STARS ───────────────────────────────────────────────────────────────────
 export function Stars({ rating, count }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-      <span style={{ color: C.yellow, fontSize: 12 }}>★</span>
-      <span style={{ fontWeight: 700, fontSize: 12, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{rating}</span>
-      {count && <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>({count})</span>}
+    <span className="flex items-center gap-1.5">
+      <span className="material-symbols-outlined text-[#FBBF24] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+      <span className="font-black text-xs text-primary">{rating}</span>
+      {count && <span className="text-[10px] font-bold text-slate-400 uppercase">({count})</span>}
     </span>
   );
 }
 
 // ─── BTN ─────────────────────────────────────────────────────────────────────
-export function Btn({ children, variant = "primary", onClick, style = {}, small }) {
-  const base = {
-    fontFamily: "'DM Sans', sans-serif", fontWeight: 600, cursor: "pointer",
-    borderRadius: 4, fontSize: small ? 12 : 14, transition: "opacity 0.15s",
-    padding: small ? "7px 14px" : "11px 20px",
-    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
-  };
+export function Btn({ children, variant = "primary", onClick, style = {}, small, className = "" }) {
   const variants = {
-    primary:  { background: C.black,       color: C.white,         border: "none"                       },
-    outlined: { background: "transparent", color: C.black,         border: `1.5px solid ${C.black}`     },
-    danger:   { background: "transparent", color: C.red,           border: `1.5px solid ${C.red}`       },
-    ghost:    { background: "transparent", color: C.textSecondary, border: "none", padding: 0, fontWeight: 500 },
+    primary:  "bg-primary text-on-primary hover:brightness-110",
+    outlined: "bg-transparent text-primary border-2 border-primary hover:bg-primary/5",
+    danger:   "bg-transparent text-error border-2 border-error hover:bg-error/5",
+    ghost:    "bg-transparent text-slate-500 hover:text-primary hover:bg-surface-container",
+    teal:     "bg-tertiary-container text-on-tertiary-container hover:brightness-110",
   };
+  
   return (
     <button
       onClick={onClick}
-      style={{ ...base, ...variants[variant], ...style }}
-      onMouseOver={e => e.currentTarget.style.opacity = "0.82"}
-      onMouseOut={e => e.currentTarget.style.opacity = "1"}
+      className={`
+        inline-flex items-center justify-center gap-2 rounded-lg font-black uppercase tracking-widest transition-all active:scale-[0.98]
+        ${small ? "px-4 py-2 text-[10px]" : "px-6 py-3 text-[11px]"}
+        ${variants[variant]}
+        ${className}
+      `}
+      style={style}
     >
       {children}
     </button>

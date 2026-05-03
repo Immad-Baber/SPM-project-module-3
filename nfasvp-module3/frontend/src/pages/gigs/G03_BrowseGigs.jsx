@@ -1,70 +1,53 @@
 import { useState, useMemo } from "react";
-import { C, Navbar, StickyNote, VerifiedBadge, Stars, Btn } from "./shared";
+import { VerifiedBadge, Stars, Btn } from "./shared";
 import { useGigs } from "../../hooks/useGigs";
 import { useCategories } from "../../hooks/useCategories";
 
 // ─── GIG CARD ────────────────────────────────────────────────────────────────
 function GigCard({ gig, onNavigate }) {
-  const [hovered, setHovered] = useState(false);
   return (
     <div
       onClick={() => onNavigate("detail", { id: gig.id })}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: C.white, border: `1px solid ${C.border}`, borderRadius: 6,
-        overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.2s, transform 0.2s",
-        boxShadow: hovered ? "0 6px 24px rgba(0,0,0,0.1)" : "0 1px 4px rgba(0,0,0,0.05)",
-        transform: hovered ? "translateY(-2px)" : "none",
-        display: "flex", flexDirection: "column",
-      }}
+      className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col group"
     >
       {/* Thumbnail */}
-      <div style={{ height: 140, background: gig.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 44 }}>{gig.icon}</span>
+      <div className="h-32 bg-surface-container flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 group-hover:scale-110 transition-transform duration-500 bg-gradient-to-br from-primary to-transparent" />
+        <span className="text-4xl relative z-10">{gig.icon}</span>
       </div>
 
       {/* Body */}
-      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-        {/* Freelancer row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 8, background: C.navBg, color: C.white,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
-          }}>
+      <div className="p-5 flex flex-col gap-4 flex-1">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-[10px] font-black uppercase flex-shrink-0">
             {gig.name.split(" ").map(w => w[0]).join("")}
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{gig.name}</div>
+            <div className="font-bold text-xs text-primary">{gig.name}</div>
             <Stars rating={gig.rating} count={gig.reviews} />
           </div>
         </div>
 
-        {/* Title */}
-        <p style={{ fontSize: 13, fontWeight: 500, color: C.textPrimary, margin: 0, lineHeight: 1.5, fontFamily: "'DM Sans', sans-serif" }}>
+        <p className="text-sm font-bold text-primary leading-tight line-clamp-2 h-10">
           {gig.title}
         </p>
 
-        {/* Tags + Badge */}
-        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+        <div className="flex gap-2 flex-wrap">
           {gig.tags.map(t => (
-            <span key={t} style={{
-              background: C.badgeBg, borderRadius: 3, padding: "2px 7px",
-              fontSize: 9, fontWeight: 700, color: C.badgeText,
-              textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "'DM Sans', sans-serif",
-            }}>{t}</span>
+            <span key={t} className="bg-surface-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest">{t}</span>
           ))}
           <VerifiedBadge />
         </div>
 
-        {/* Footer */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${C.border}`, paddingTop: 10, marginTop: 4 }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>⏱ {gig.delivery}</span>
-            <span style={{ fontWeight: 700, fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{gig.price}</span>
+        <div className="flex justify-between items-center pt-4 border-t border-outline-variant/10 mt-auto">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Starts From</span>
+            <span className="font-black text-sm text-primary uppercase">{gig.price}</span>
           </div>
-          <Btn small onClick={(e) => { e.stopPropagation(); onNavigate("detail", { id: gig.id }); }}>Apply Now</Btn>
+          <div className="text-right">
+             <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-tighter">Delivery</span>
+             <span className="text-[10px] font-black text-primary">{gig.delivery}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -83,19 +66,13 @@ export default function BrowseGigs({ onNavigate, role }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [appliedFilters, setAppliedFilters] = useState({});
-
   const [page, setPage] = useState(1);
 
   const filters = useMemo(() => {
-    return { 
-      page, 
-      q: search, 
-      sort,
-      ...appliedFilters 
-    };
+    return { page, q: search, sort, ...appliedFilters };
   }, [page, search, appliedFilters]);
 
-  const { gigs, loading, error, meta, refresh } = useGigs(filters);
+  const { gigs, loading, error, meta } = useGigs(filters);
 
   const handleApplyFilters = () => {
     const f = {};
@@ -108,36 +85,22 @@ export default function BrowseGigs({ onNavigate, role }) {
   };
 
   const handleClearFilters = () => {
-    setBudgetMin("");
-    setBudgetMax("");
-    setDelivery("Any");
-    setActiveFilter("All");
-    setSearch("");
-    setSort("newest");
-    setAppliedFilters({});
-    setPage(1);
+    setBudgetMin(""); setBudgetMax(""); setDelivery("Any"); setActiveFilter("All"); setSearch(""); setSort("newest"); setAppliedFilters({}); setPage(1);
   };
 
   const FILTERS = ["All", "Web Dev", "Design", "Writing", "Marketing", "Data", "Video"];
 
-  // Map API gig format to the UI card format
   const mappedGigs = useMemo(() => {
     if (!gigs) return [];
     return gigs.map(g => {
       const basicTier = g.pricing_tiers?.[0] || {};
       return {
         id: g.id,
-        name: `Freelancer ${g.freelancer_id?.substring(0, 4) || ''}`, // Mocks name since we don't fetch users
+        name: `Freelancer ${g.freelancer_id?.substring(0, 4) || ''}`,
         rating: g.avg_rating || "0.0",
         reviews: g.review_count || "0",
         title: g.title,
-        tags: Array.isArray(g.required_skills) ? g.required_skills.map(s => {
-          if (typeof s === 'string') return s;
-          if (s && s.tag && typeof s.tag.name === 'string') return s.tag.name;
-          if (s && typeof s.name === 'string') return s.name;
-          if (s && typeof s.tag === 'string') return s.tag;
-          return 'Skill';
-        }).slice(0, 2) : ["Skill"],
+        tags: Array.isArray(g.required_skills) ? g.required_skills.map(s => typeof s === 'string' ? s : (s.tag?.name || s.name || s.tag || 'Skill')).slice(0, 2) : ["Skill"],
         price: `PKR ${basicTier.price || 'N/A'}`,
         delivery: `${basicTier.delivery_days || '?'} days`,
         color: "#E8F4FD", 
@@ -147,178 +110,128 @@ export default function BrowseGigs({ onNavigate, role }) {
   }, [gigs]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} role={role} />
-
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div className="flex flex-col min-h-screen">
+      <div className="flex gap-10">
         {/* ── Sidebar ── */}
-        <aside style={{
-          width: 240, flexShrink: 0, background: C.white, borderRight: `1px solid ${C.border}`,
-          padding: "24px 16px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 20,
-        }}>
+        <aside className="w-64 flex-shrink-0 space-y-8 sticky top-24 h-fit">
           <div>
-            <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Filters</h3>
-            <p style={{ margin: 0, fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Refine your search</p>
+            <h3 className="text-xl font-black text-primary uppercase tracking-tight">Market Filters</h3>
+            <p className="text-xs text-slate-500 font-medium">Refine editorial listings</p>
           </div>
 
-          {/* Category */}
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 6 }}>CATEGORY</label>
-            <select 
-              value={activeFilter}
-              onChange={e => setActiveFilter(e.target.value)}
-              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
-            >
-              <option value="All">All Categories</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-
-          {/* Budget */}
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 6 }}>BUDGET RANGE (PKR)</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {[{ ph: "Min", val: budgetMin, set: setBudgetMin }, { ph: "Max", val: budgetMax, set: setBudgetMax }].map(({ ph, val, set }) => (
-                <input key={ph} placeholder={ph} value={val} onChange={e => set(e.target.value)}
-                  style={{ flex: 1, padding: "10px 8px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif" }} />
-              ))}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black tracking-[0.1em] uppercase text-slate-400">Category</label>
+              <select 
+                value={activeFilter}
+                onChange={e => setActiveFilter(e.target.value)}
+                className="w-full bg-surface-container-low border-0 ring-1 ring-outline-variant/15 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-tertiary outline-none transition-all"
+              >
+                <option value="All">All Categories</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
             </div>
-          </div>
 
-          {/* Delivery Time */}
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>DELIVERY TIME</label>
-            {["Any", "Up to 1 day", "Up to 3 days", "Up to 7 days"].map(d => (
-              <label key={d} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}>
-                <input type="radio" name="delivery" value={d} checked={delivery === d} onChange={() => setDelivery(d)} style={{ accentColor: C.black }} />
-                <span style={{ fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{d}</span>
-              </label>
-            ))}
-          </div>
-
-          {/* Seller Rating */}
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>SELLER RATING</label>
-            <div style={{ display: "flex", gap: 4 }}>
-              {[1, 2, 3, 4, 5].map(s => <span key={s} style={{ fontSize: 20, cursor: "pointer", color: C.yellow }}>★</span>)}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black tracking-[0.1em] uppercase text-slate-400">Budget Range (PKR)</label>
+              <div className="flex gap-2">
+                <input placeholder="Min" value={budgetMin} onChange={e => setBudgetMin(e.target.value)} className="w-full bg-surface-container-low border-0 ring-1 ring-outline-variant/15 rounded-lg px-3 py-2 text-xs" />
+                <input placeholder="Max" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} className="w-full bg-surface-container-low border-0 ring-1 ring-outline-variant/15 rounded-lg px-3 py-2 text-xs" />
+              </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
-            <Btn onClick={handleApplyFilters} style={{ width: "100%", justifyContent: "center" }}>Apply Filters</Btn>
-            <Btn onClick={handleClearFilters} variant="outlined" style={{ width: "100%", justifyContent: "center" }}>Clear Filters</Btn>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black tracking-[0.1em] uppercase text-slate-400">Delivery Time</label>
+              <div className="space-y-2">
+                {["Any", "Up to 1 day", "Up to 3 days", "Up to 7 days"].map(d => (
+                  <label key={d} className="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="delivery" value={d} checked={delivery === d} onChange={() => setDelivery(d)} className="w-4 h-4 text-primary focus:ring-primary border-outline-variant/20" />
+                    <span className="text-xs font-semibold text-on-surface-variant group-hover:text-primary transition-colors">{d}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-outline-variant/10 flex flex-col gap-3">
+              <Btn onClick={handleApplyFilters} className="w-full">Apply Filters</Btn>
+              <Btn onClick={handleClearFilters} variant="ghost" className="w-full text-[10px]">Clear All</Btn>
+            </div>
           </div>
         </aside>
 
         {/* ── Main Content ── */}
-        <main style={{ flex: 1, overflowY: "auto", padding: 28, display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Title + Search */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <h1 style={{ margin: 0, fontSize: 34, fontWeight: 800, color: C.black, fontFamily: "'DM Sans', sans-serif", letterSpacing: "-1px" }}>Browse Gigs</h1>
-
-            <div style={{ position: "relative", maxWidth: 660 }}>
-              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: C.textMuted, fontSize: 16 }}>🔍</span>
-              <input
-                value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search gigs by skill or keyword..."
-                style={{ width: "100%", padding: "13px 16px 13px 42px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
-              />
+        <main className="flex-1 space-y-10">
+          <div className="space-y-6">
+            <div className="border-l-4 border-tertiary-fixed pl-6">
+              <h1 className="text-4xl font-black text-primary uppercase tracking-tight">Gig Marketplace</h1>
+              <p className="text-slate-500 font-medium">Explore premium professional services curated for excellence.</p>
             </div>
 
-            {/* Filter Chips */}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="relative max-w-2xl">
+              <input
+                value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search services, skills, or experts..."
+                className="w-full bg-surface-container-lowest border-0 ring-1 ring-outline-variant/15 rounded-xl px-6 py-4 pl-12 text-sm shadow-sm focus:ring-2 focus:ring-tertiary outline-none transition-all"
+              />
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
               {FILTERS.map(f => (
                 <button key={f}
                   onClick={() => { 
-                    setActiveFilter(f); 
-                    setPage(1); 
+                    setActiveFilter(f); setPage(1); 
                     const cat = categories.find(c => c.name.toLowerCase().includes(f.toLowerCase()));
                     setAppliedFilters(prev => ({ ...prev, category_id: (f === "All" || !cat) ? "" : cat.id })); 
                   }}
-                  style={{
-                    padding: "7px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
-                    cursor: "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s",
-                    background: activeFilter === f ? C.black : C.white,
-                    color: activeFilter === f ? C.white : C.textPrimary,
-                    border: activeFilter === f ? `1.5px solid ${C.black}` : `1.5px solid ${C.border}`,
-                  }}>{f}</button>
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === f ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'}`}
+                >
+                  {f}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Sort Bar */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}`, paddingBottom: 12 }}>
-            <span style={{ fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Showing latest <strong>{meta?.total || 0} gigs</strong></span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 13, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Sort by:</span>
-              <select 
-                value={sort}
-                onChange={e => setSort(e.target.value)}
-                style={{ padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
-              >
-                <option value="newest">Newest</option>
+          <div className="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Showing <strong className="text-primary">{meta?.total || 0}</strong> results</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sort:</span>
+              <select value={sort} onChange={e => setSort(e.target.value)} className="bg-transparent border-0 text-[10px] font-black uppercase tracking-widest text-primary focus:ring-0 outline-none cursor-pointer">
+                <option value="newest">Newest First</option>
                 <option value="price_low">Lowest Price</option>
-                <option value="rating">Highest Rated</option>
-                <option value="relevant">Most Relevant</option>
+                <option value="rating">Top Rated</option>
               </select>
             </div>
           </div>
 
-          {/* 3×2 Gig Grid */}
           {loading ? (
-            <div style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>Loading gigs...</div>
+            <div className="py-20 text-center font-black uppercase tracking-widest text-slate-300">Loading Marketplace...</div>
           ) : error ? (
-            <div style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'DM Sans', sans-serif" }}>Error: {error}</div>
+            <div className="py-20 text-center text-error font-black uppercase tracking-widest">Connection Error: {error}</div>
           ) : mappedGigs.length === 0 ? (
-            <div style={{ padding: 40, textAlign: "center", color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>No gigs found matching filters.</div>
+            <div className="py-20 text-center text-slate-400 font-black uppercase tracking-widest">No matching services found.</div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {mappedGigs.map(g => <GigCard key={g.id} gig={g} onNavigate={onNavigate} />)}
             </div>
           )}
 
           {/* Pagination */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, paddingTop: 8 }}>
-            <button 
-              disabled={page === 1}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              style={{
-                padding: "8px 14px",
-                background: C.white,
-                color: page === 1 ? C.textMuted : C.textPrimary,
-                border: `1px solid ${C.border}`, borderRadius: 3,
-                fontSize: 13, fontWeight: 700, cursor: page === 1 ? "default" : "pointer", fontFamily: "'DM Sans', sans-serif",
-                opacity: page === 1 ? 0.5 : 1
-              }}>← Prev</button>
-
-            {[1, 2, 3].map((p) => (
-              <button 
-                key={p} 
-                onClick={() => setPage(p)}
-                style={{
-                  padding: "0",
-                  width: 38, height: 38,
-                  background: page === p ? C.black : C.white,
-                  color: page === p ? C.white : C.textPrimary,
-                  border: `1px solid ${C.border}`, borderRadius: 3,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                }}>{p}</button>
-            ))}
-
-            <button 
-              onClick={() => setPage(p => p + 1)}
-              style={{
-                padding: "8px 14px",
-                background: C.white,
-                color: C.textPrimary,
-                border: `1px solid ${C.border}`, borderRadius: 3,
-                fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-              }}>Next →</button>
+          <div className="flex justify-center items-center gap-4 py-10">
+            <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="w-10 h-10 rounded-lg border border-outline-variant/10 flex items-center justify-center text-primary disabled:opacity-30 hover:bg-surface-container transition-all">
+              <span className="material-symbols-outlined">chevron_left</span>
+            </button>
+            <div className="flex gap-2">
+              {[1, 2, 3].map(p => (
+                <button key={p} onClick={() => setPage(p)} className={`w-10 h-10 rounded-lg text-[10px] font-black transition-all ${page === p ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container text-primary hover:bg-surface-container-high'}`}>
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setPage(p => p + 1)} className="w-10 h-10 rounded-lg border border-outline-variant/10 flex items-center justify-center text-primary hover:bg-surface-container transition-all">
+              <span className="material-symbols-outlined">chevron_right</span>
+            </button>
           </div>
-
-          <StickyNote text="🔗 Links to G01 – Profile Management · Clicking freelancer names/avatars navigates to their profile. · Clicking a gig card → G03_GigDetail · Clicking category chip → G03_CategorySelection" />
         </main>
       </div>
     </div>
