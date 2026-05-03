@@ -36,21 +36,34 @@ async function getGigsByFreelancer(freelancerId, filters = {}) {
 }
 
 async function getAllGigs(filters = {}) {
-  const { category_id, is_featured, min_rating, page = 1, limit = 10 } = filters;
+  const { category_id, is_featured, min_rating, sort = 'newest', page = 1, limit = 10 } = filters;
   const from = (page - 1) * limit;
+  
   let query = supabase
     .from('gigs')
     .select(`id, title, thumbnail_url, avg_rating, review_count, orders_count, is_featured, freelancer_id, created_at,
       category:marketplace_categories(id, name, slug),
       pricing_tiers:gig_pricing_tiers(tier, price, delivery_days),
       required_skills:gig_required_skills(tag:marketplace_tags(id, name, slug))`, { count: 'exact' })
-    .eq('status', 'live')
-    .order('is_featured', { ascending: false })
-    .order('avg_rating',  { ascending: false })
-    .range(from, from + limit - 1);
+    .eq('status', 'live');
+
+  // Sorting
+  if (sort === 'newest') {
+    query = query.order('created_at', { ascending: false });
+  } else if (sort === 'price_low') {
+    query = query.order('gig_pricing_tiers(price)', { ascending: true });
+  } else if (sort === 'rating') {
+    query = query.order('avg_rating', { ascending: false });
+  } else {
+    query = query.order('is_featured', { ascending: false }).order('avg_rating', { ascending: false });
+  }
+
+  query = query.range(from, from + limit - 1);
+
   if (category_id)               query = query.eq('category_id', category_id);
   if (is_featured !== undefined)  query = query.eq('is_featured', is_featured);
   if (min_rating)                query = query.gte('avg_rating', min_rating);
+  
   return query;
 }
 

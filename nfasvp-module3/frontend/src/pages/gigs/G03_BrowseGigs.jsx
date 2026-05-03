@@ -81,6 +81,7 @@ export default function BrowseGigs({ onNavigate, role }) {
   const [budgetMax, setBudgetMax] = useState("");
   const [delivery, setDelivery] = useState("");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("newest");
   const [appliedFilters, setAppliedFilters] = useState({});
 
   const [page, setPage] = useState(1);
@@ -89,6 +90,7 @@ export default function BrowseGigs({ onNavigate, role }) {
     return { 
       page, 
       q: search, 
+      sort,
       ...appliedFilters 
     };
   }, [page, search, appliedFilters]);
@@ -111,6 +113,7 @@ export default function BrowseGigs({ onNavigate, role }) {
     setDelivery("Any");
     setActiveFilter("All");
     setSearch("");
+    setSort("newest");
     setAppliedFilters({});
     setPage(1);
   };
@@ -228,7 +231,12 @@ export default function BrowseGigs({ onNavigate, role }) {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {FILTERS.map(f => (
                 <button key={f}
-                  onClick={() => { setActiveFilter(f); if (f !== "All") onNavigate("categories"); }}
+                  onClick={() => { 
+                    setActiveFilter(f); 
+                    setPage(1); 
+                    const cat = categories.find(c => c.name.toLowerCase().includes(f.toLowerCase()));
+                    setAppliedFilters(prev => ({ ...prev, category_id: (f === "All" || !cat) ? "" : cat.id })); 
+                  }}
                   style={{
                     padding: "7px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
                     cursor: "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s",
@@ -245,11 +253,15 @@ export default function BrowseGigs({ onNavigate, role }) {
             <span style={{ fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Showing latest <strong>{meta?.total || 0} gigs</strong></span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 13, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Sort by:</span>
-              <select style={{ padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                <option>Most Relevant</option>
-                <option>Lowest Price</option>
-                <option>Highest Rated</option>
-                <option>Newest</option>
+              <select 
+                value={sort}
+                onChange={e => setSort(e.target.value)}
+                style={{ padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              >
+                <option value="newest">Newest</option>
+                <option value="price_low">Lowest Price</option>
+                <option value="rating">Highest Rated</option>
+                <option value="relevant">Most Relevant</option>
               </select>
             </div>
           </div>

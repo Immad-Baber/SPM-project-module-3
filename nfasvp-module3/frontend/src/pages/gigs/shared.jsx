@@ -54,7 +54,7 @@ export function Navbar({ onNavigate, currentScreen, role }) {
     }}>
       {/* Left — Hamburger + Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <button onClick={() => onNavigate && onNavigate("browse")} style={{
+        <button onClick={() => onNavigate && onNavigate("home")} style={{
           background: "none", border: "none", cursor: "pointer",
           display: "flex", flexDirection: "column", gap: 5, padding: 6,
         }}>
@@ -62,7 +62,7 @@ export function Navbar({ onNavigate, currentScreen, role }) {
             <span key={i} style={{ display: "block", width: 26, height: 3, background: C.white, borderRadius: 2 }} />
           ))}
         </button>
-        <button onClick={() => onNavigate && onNavigate("browse")} style={{
+        <button onClick={() => onNavigate && onNavigate("home")} style={{
           background: "none", border: "none", cursor: "pointer",
           fontFamily: "'DM Sans', sans-serif", fontWeight: 700,
           fontSize: 18, color: C.white, letterSpacing: "-0.5px",

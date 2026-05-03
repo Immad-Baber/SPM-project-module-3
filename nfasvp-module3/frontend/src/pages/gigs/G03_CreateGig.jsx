@@ -41,7 +41,7 @@ export default function CreateGig({ onNavigate, role }) {
       }))
     };
 
-    const success = await createGig(payload);
+    const success = await createGig({ ...payload, status: "live" });
     if (success) {
       alert("Gig created successfully!");
       onNavigate("mygigs");
