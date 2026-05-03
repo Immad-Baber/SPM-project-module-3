@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, Navbar, StickyNote, Stars, Btn } from "./shared";
 import { useGig } from "../../hooks/useGigs";
 
