@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { C, Navbar, StickyNote, VerifiedBadge, Stars, Btn } from "./shared";
 import { useGigs } from "../../hooks/useGigs";
+import { useCategories } from "../../hooks/useCategories";
 
 // ─── GIG CARD ────────────────────────────────────────────────────────────────
 function GigCard({ gig, onNavigate }) {
@@ -74,6 +75,7 @@ function GigCard({ gig, onNavigate }) {
 // G03_BrowseGigs
 // ══════════════════════════════════════════════════════════════════════════════
 export default function BrowseGigs({ onNavigate, role }) {
+  const { categories } = useCategories();
   const [activeFilter, setActiveFilter] = useState("All");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
@@ -160,9 +162,13 @@ export default function BrowseGigs({ onNavigate, role }) {
           {/* Category */}
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 6 }}>CATEGORY</label>
-            <select style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-              <option>Select Category</option>
-              {["Web Development", "Graphic Design", "Content Writing", "Mobile Apps", "Data & Analytics"].map(c => <option key={c}>{c}</option>)}
+            <select 
+              value={activeFilter}
+              onChange={e => setActiveFilter(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+            >
+              <option value="All">All Categories</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 

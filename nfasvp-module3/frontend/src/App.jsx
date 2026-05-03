@@ -18,6 +18,12 @@ import JobBidsList          from "./pages/bids/G03_JobBidsList.jsx";
 import CreateJob            from "./pages/jobs/G03_CreateJob.jsx";
 import MyJobs               from "./pages/jobs/G03_MyJobs.jsx";
 
+// ── Person 4 Screens ──────────────────────────────────────────────────────────
+import GlobalSearch         from "./pages/search/G03_GlobalSearch.jsx";
+import ProjectStatus        from "./pages/projects/G03_ProjectStatus.jsx";
+import ProjectDetail        from "./pages/projects/G03_ProjectDetail.jsx";
+import Notifications        from "./pages/system/G03_Notifications.jsx";
+
 // ── API Service Layer (backend integration) ───────────────────────────────────
 import { setAuthToken, loadStoredToken, checkHealth } from "./services/api.js";
 import { getDevToken } from "./services/devAuth.js";
@@ -43,6 +49,12 @@ const SCREENS = {
   jobbids:      JobBidsList,
   createjob:    CreateJob,
   myjobs:       MyJobs,
+
+  // Person 4
+  globalsearch:  GlobalSearch,
+  myprojects:    ProjectStatus,
+  projectdetail: ProjectDetail,
+  notifications: Notifications,
 };
 
 const ROUTE_ALIASES = {
@@ -51,130 +63,131 @@ const ROUTE_ALIASES = {
   review: "acceptreject",
   jobproposals: "jobbids",
   detail: "jobdetail",
+  search: "globalsearch",
+  projects: "myprojects",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Home landing — pick a module to demo
+// Home Dashboard — Role-specific experience
 // ─────────────────────────────────────────────────────────────────────────────
 function Home({ onNavigate, backendStatus, role }) {
-  const freelancerOptions = [
-    { key: "mygigs",     label: "My Gigs",              icon: "📋" },
-    { key: "create",     label: "Create Gig",           icon: "➕" },
-    { key: "categories", label: "Category Selection",   icon: "🗂️" },
-    { key: "browsejobs", label: "Browse Jobs",          icon: "💼" },
-    { key: "myproposals",label: "My Proposals",         icon: "📑" },
+  const freelancerCards = [
+    { key: "myprojects", label: "Active Projects",  icon: "🚀", desc: "Track your ongoing work and milestones." },
+    { key: "mygigs",     label: "Manage Gigs",      icon: "📋", desc: "Edit your services and view performance." },
+    { key: "browsejobs", label: "Find Work",        icon: "💼", desc: "Browse open job postings and bid." },
+    { key: "myproposals",label: "My Proposals",     icon: "📑", desc: "Track your submitted bids and status." },
+    { key: "create",     label: "Create New Gig",   icon: "➕", desc: "List a new service on the marketplace." },
   ];
 
-  const clientOptions = [
-    { key: "myjobs",     label: "My Jobs",              icon: "📋" },
-    { key: "createjob",  label: "Post a Job",           icon: "➕" },
-    { key: "browse",     label: "Browse Gigs",          icon: "🔍" },
-    { key: "categories", label: "Category Selection",   icon: "🗂️" },
+  const clientCards = [
+    { key: "myprojects", label: "Track Projects",   icon: "🚀", desc: "Monitor progress of your hired freelancers." },
+    { key: "myjobs",     label: "Manage Jobs",      icon: "📋", desc: "View and edit your posted job listings." },
+    { key: "browse",     label: "Hire Talent",      icon: "🔍", desc: "Find and order professional services." },
+    { key: "createjob",  label: "Post a Job",       icon: "➕", desc: "Create a new project request for bids." },
+    { key: "search",     label: "Global Search",    icon: "🌐", desc: "Search across all categories and skills." },
   ];
 
-  const activeOptions = role === "freelancer" ? freelancerOptions : clientOptions;
-
+  const activeCards = role === "freelancer" ? freelancerCards : clientCards;
 
   const cardStyle = {
-    background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10,
-    padding: "18px 20px", display: "flex", alignItems: "center", gap: 14,
-    cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s",
-    fontFamily: "'DM Sans', sans-serif",
+    background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12,
+    padding: "24px", display: "flex", flexDirection: "column", gap: 12,
+    cursor: "pointer", transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+    fontFamily: "'DM Sans', sans-serif", boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
   };
 
-  const statusColors = {
-    checking: { bg: "#FEF9C3", dot: "#D97706", text: "#92400E", label: "Checking backend…" },
-    online:   { bg: "#DCFCE7", dot: "#16A34A", text: "#14532D", label: "Backend online ✓ (port 4003)" },
-    offline:  { bg: "#FEE2E2", dot: "#DC2626", text: "#7F1D1D", label: "Backend offline — run: npm run dev in /backend" },
+  const stCfg = {
+    checking: { dot: "#D97706", text: "#92400E", label: "System Check..." },
+    online:   { dot: "#16A34A", text: "#14532D", label: "Ready & Connected" },
+    offline:  { dot: "#DC2626", text: "#7F1D1D", label: "Backend Sync Error" },
   };
-  const st = statusColors[backendStatus] || statusColors.checking;
+  const st = stCfg[backendStatus] || stCfg.checking;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9F9FF", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#F8FAFC", fontFamily: "'DM Sans', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-      {/* Header */}
-      <div style={{ background: "#000", color: "#fff", padding: "28px 40px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: "-1px" }}>GigMarket</h1>
-          <p style={{ margin: "6px 0 0", fontSize: 14, opacity: 0.6 }}>NFASVP · Module 3 – Gig & Proposal Management</p>
-        </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          {/* Backend connection status badge */}
-          <div style={{
-            background: st.bg, borderRadius: 8, padding: "8px 14px",
-            display: "flex", alignItems: "center", gap: 8,
-            fontFamily: "'DM Sans', sans-serif",
-          }}>
-            <span style={{
-              width: 8, height: 8, borderRadius: "50%", background: st.dot, display: "inline-block",
-              boxShadow: backendStatus === "online" ? `0 0 0 3px ${st.dot}33` : "none",
-            }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: st.text }}>{st.label}</span>
+      {/* Hero Header */}
+      <div style={{ background: role === 'client' ? "#1E40AF" : "#065F46", color: "#fff", padding: "48px 40px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 40, fontWeight: 800, letterSpacing: "-1.5px" }}>
+              Welcome, {role === 'client' ? 'Business Client' : 'Expert Freelancer'}
+            </h1>
+            <p style={{ margin: "12px 0 0", fontSize: 18, opacity: 0.9, fontWeight: 400 }}>
+              {role === 'client' ? 'Manage your team and projects from one central hub.' : 'Scale your freelance business with verified project management.'}
+            </p>
           </div>
-          <button onClick={() => onNavigate("switch_role")} style={{
-            background: "#fff", border: "1px solid #E2E8F0", borderRadius: 8, padding: "8px 14px",
-            fontSize: 12, fontWeight: 600, color: "#0F172A", cursor: "pointer", fontFamily: "'DM Sans', sans-serif"
-          }}>
-            Switch Role
-          </button>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: "12px 20px", display: "inline-flex", alignItems: "center", gap: 10, backdropFilter: "blur(10px)" }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: st.dot, boxShadow: `0 0 10px ${st.dot}` }} />
+              <span style={{ fontSize: 14, fontWeight: 700 }}>{st.label}</span>
+            </div>
+            <div style={{ marginTop: 16 }}>
+               <button onClick={() => onNavigate("switch_role")} style={{ background: "#fff", color: role === 'client' ? "#1E40AF" : "#065F46", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "transform 0.1s" }} onMouseDown={e => e.currentTarget.style.transform = "scale(0.95)"} onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}>
+                 Switch to {role === 'client' ? 'Freelancer' : 'Client'} Mode
+               </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px", display: "flex", flexDirection: "column", gap: 36 }}>
+      {/* Main Content */}
+      <div style={{ maxWidth: 1200, margin: "-30px auto 40px", padding: "0 24px", position: "relative", zIndex: 3 }}>
+        
+        {/* Quick Stats Placeholder */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 32 }}>
+           {[
+             { label: "Active Projects", value: "4", color: "#3B82F6" },
+             { label: "Unread Messages", value: "2", color: "#10B981" },
+             { label: "Pending Payments", value: "PKR 12k", color: "#F59E0B" }
+           ].map(stat => (
+             <div key={stat.label} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "20px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
+               <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.5px" }}>{stat.label}</div>
+               <div style={{ fontSize: 24, fontWeight: 800, color: stat.color, marginTop: 4 }}>{stat.value}</div>
+             </div>
+           ))}
+        </div>
 
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
+           <span>{role === 'client' ? '🏢' : '👩‍💻'}</span>
+           Explore {role === 'client' ? 'Client' : 'Freelancer'} Workspace
+        </h2>
 
-        {/* Role Options */}
-        <section>
-          <h2 style={{ margin: "0 0 16px", fontSize: 20, fontWeight: 700, color: "#0F172A", textTransform: "capitalize" }}>
-            {role === "freelancer" ? "👩‍💻 Freelancer Dashboard" : "🏢 Client Dashboard"}
-          </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {activeOptions.map(({ key, label, icon }) => (
-              <div
-                key={key}
-                onClick={() => onNavigate(key)}
-                style={cardStyle}
-                onMouseOver={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
-              >
-                <span style={{ fontSize: 26 }}>{icon}</span>
-                <span style={{ fontWeight: 600, fontSize: 15, color: "#0F172A" }}>{label}</span>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+          {activeCards.map(({ key, label, icon, desc }) => (
+            <div
+              key={key}
+              onClick={() => onNavigate(key)}
+              style={cardStyle}
+              onMouseOver={e => { e.currentTarget.style.borderColor = role === 'client' ? "#3B82F6" : "#10B981"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)"; }}
+              onMouseOut={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)"; }}
+            >
+              <div style={{ width: 48, height: 48, background: "#F1F5F9", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
+                {icon}
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* API endpoints reference panel */}
-        <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10, padding: "20px 24px" }}>
-          <h3 style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 700, color: "#0F172A", fontFamily: "'DM Sans', sans-serif" }}>
-            🔗 Backend API Endpoints (port 4003)
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            {[
-              ["GET", "/api/v1/health",       "Health check"],
-              ["GET", "/api/v1/gigs",         "List gigs"],
-              ["GET", "/api/v1/jobs",         "List jobs"],
-              ["GET", "/api/v1/bids/my-bids", "My proposals"],
-              ["GET", "/api/v1/categories",   "Categories"],
-              ["GET", "/api/v1/search",       "Global search"],
-            ].map(([method, path, desc]) => (
-              <div key={path} style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
-                <span style={{
-                  background: method === "GET" ? "#DBEAFE" : "#FCE7F3",
-                  color: method === "GET" ? "#1D4ED8" : "#BE185D",
-                  borderRadius: 4, padding: "2px 7px", fontWeight: 700, fontSize: 11,
-                  minWidth: 36, textAlign: "center",
-                }}>
-                  {method}
-                </span>
-                <code style={{ color: "#374151", background: "#F9FAFB", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>{path}</code>
-                <span style={{ color: "#6B7280" }}>{desc}</span>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 18, color: "#0F172A", marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.5 }}>{desc}</div>
               </div>
-            ))}
-          </div>
-        </section>
+            </div>
+          ))}
+        </div>
 
+        {/* Integration Footer */}
+        <div style={{ marginTop: 48, borderTop: "1px solid #E2E8F0", paddingTop: 32, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+           <div style={{ display: "flex", gap: 32 }}>
+              <div style={{ fontSize: 13, color: "#64748B" }}>
+                <strong style={{ color: "#0F172A" }}>Module 3</strong> - Gig & Proposal Lifecycle
+              </div>
+              <div style={{ fontSize: 13, color: "#64748B" }}>
+                <strong style={{ color: "#0F172A" }}>Module 4</strong> - Admin & Dispute (Linked)
+              </div>
+           </div>
+           <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8" }}>
+              © 2026 NFASVP PLATFORM
+           </div>
+        </div>
       </div>
     </div>
   );

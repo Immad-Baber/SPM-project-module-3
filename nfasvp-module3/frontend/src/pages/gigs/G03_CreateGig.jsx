@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { C, Navbar, StickyNote, Btn } from "./shared";
 import { useCreateGig } from "../../hooks/useGigs";
+import { useCategories } from "../../hooks/useCategories";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_CreateGig
 // ══════════════════════════════════════════════════════════════════════════════
 export default function CreateGig({ onNavigate, role }) {
   const { createGig, loading, error } = useCreateGig();
+  const { categories, loading: loadingCats } = useCategories();
   
   const [form, setForm] = useState({
     title: "",
@@ -14,9 +16,9 @@ export default function CreateGig({ onNavigate, role }) {
     category_id: "",
     required_skills: "",
     pricing: [
-      { name: "Basic", price: "", delivery_days: "", desc: "" },
-      { name: "Standard", price: "", delivery_days: "", desc: "" },
-      { name: "Premium", price: "", delivery_days: "", desc: "" },
+      { tier: "basic",    price: "", delivery_days: "", desc: "" },
+      { tier: "standard", price: "", delivery_days: "", desc: "" },
+      { tier: "premium",  price: "", delivery_days: "", desc: "" },
     ]
   });
 
@@ -95,10 +97,10 @@ export default function CreateGig({ onNavigate, role }) {
                     onChange={e => setForm({ ...form, category_id: e.target.value })}
                     style={inputStyle}
                   >
-                    <option value="">Select Category</option>
-                    <option value="web-dev">Web Development</option>
-                    <option value="design">Graphic Design</option>
-                    <option value="writing">Content Writing</option>
+                    <option value="">{loadingCats ? "Loading..." : "Select Category"}</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -130,8 +132,8 @@ export default function CreateGig({ onNavigate, role }) {
               
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
                 {form.pricing.map((tier, i) => (
-                  <div key={tier.name} style={{ background: "#F8FAFC", border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ fontWeight: 800, color: C.black, fontSize: 14, textAlign: "center" }}>{tier.name}</div>
+                  <div key={tier.tier} style={{ background: "#F8FAFC", border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ fontWeight: 800, color: C.black, fontSize: 14, textAlign: "center", textTransform: "capitalize" }}>{tier.tier}</div>
                     
                     <div>
                       <label style={labelStyle}>PRICE (PKR)</label>

@@ -257,8 +257,11 @@ export const projectApi = {
   /** GET /api/v1/projects/:id — Get a specific project */
   getById: (id) => request(`/projects/${id}`),
 
-  /** GET /api/v1/projects/my-projects — Get logged-in user's projects */
-  myProjects: () => request('/projects/my-projects'),
+  /** GET /api/v1/projects — Get logged-in user's projects */
+  myProjects: (filters = {}) => {
+    const params = new URLSearchParams(filters);
+    return request(`/projects${params.toString() ? `?${params}` : ''}`);
+  },
 
   /** POST /api/v1/projects — Create a project */
   create: (body) => request('/projects', { method: 'POST', body: JSON.stringify(body) }),
