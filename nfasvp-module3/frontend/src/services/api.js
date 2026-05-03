@@ -15,8 +15,9 @@
  *   The backend validates it with MODULE1_JWT_SECRET.
  */
 
-// ── Base URL (proxied by Vite in dev, real URL in production) ─────────────────
-const BASE_URL = '/api/v1';
+// Base URL. In dev this defaults to Vite's /api/v1 proxy. In production,
+// set VITE_API_BASE_URL when the backend is hosted on another origin.
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
 
 // ── Auth token store ──────────────────────────────────────────────────────────
 let _authToken = null;
@@ -73,10 +74,11 @@ async function request(path, opts = {}) {
   const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message =
-      json?.error ||
-      json?.message ||
-      `API error ${response.status}: ${response.statusText}`;
+    let message = json?.error || json?.message || `API error ${response.status}: ${response.statusText}`;
+    if (json?.details) {
+      message += " | Details: " + JSON.stringify(json.details);
+      console.error("API Validation Errors:", json.details);
+    }
     throw new Error(message);
   }
 
@@ -230,6 +232,9 @@ export const bidApi = {
   accept: (bidId, jobId) =>
     request(`/bids/${bidId}/accept`, { method: 'PUT', body: JSON.stringify({ job_id: jobId }) }),
 
+  /** GET /api/v1/bids/:id — Get a specific bid detail */
+  getById: (bidId) => request(`/bids/${bidId}`),
+
   /** PUT /api/v1/bids/:id/reject — Reject a bid (client only) */
   reject: (bidId) => request(`/bids/${bidId}/reject`, { method: 'PUT' }),
 };
@@ -252,8 +257,11 @@ export const projectApi = {
   /** GET /api/v1/projects/:id — Get a specific project */
   getById: (id) => request(`/projects/${id}`),
 
-  /** GET /api/v1/projects/my-projects — Get logged-in user's projects */
-  myProjects: () => request('/projects/my-projects'),
+  /** GET /api/v1/projects — Get logged-in user's projects */
+  myProjects: (filters = {}) => {
+    const params = new URLSearchParams(filters);
+    return request(`/projects${params.toString() ? `?${params}` : ''}`);
+  },
 
   /** POST /api/v1/projects — Create a project */
   create: (body) => request('/projects', { method: 'POST', body: JSON.stringify(body) }),

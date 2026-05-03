@@ -108,11 +108,12 @@ export function usePostJob() {
         setJob(res.data);
         return res.data;
       }
-      setError(res.error || 'Failed to post job');
-      return null;
+      const message = res.error || 'Failed to post job';
+      setError(message);
+      throw new Error(message);
     } catch (e) {
       setError(e.message);
-      return null;
+      throw e;
     } finally {
       setLoading(false);
     }

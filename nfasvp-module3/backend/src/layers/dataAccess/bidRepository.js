@@ -11,7 +11,7 @@ const supabase = require('../../config/supabaseClient');
 
 /**
  * Insert a new bid with status='pending'.
- * @param {Object} bidData - { job_id, freelancer_id, bid_amount, bid_type, duration_label, cover_letter }
+ * @param {Object} bidData - { job_id, freelancer_id, bid_amount, bid_type, duration_label, cover_letter, milestones }
  */
 async function createBid(bidData) {
   return supabase

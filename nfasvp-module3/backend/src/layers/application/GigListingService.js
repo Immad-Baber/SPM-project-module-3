@@ -21,6 +21,7 @@ const MAX_ACTIVE_GIGS  = 20;       // REQ-MKT-015
 const MAX_FILE_SIZE_KB = 10240;    // 10 MB
 const ALLOWED_FILE_TYPES = ['image', 'pdf', 'video'];
 const VALID_TIERS        = ['basic', 'standard', 'premium'];
+const VALID_STATUSES     = ['draft', 'live', 'paused'];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,10 @@ function validateGigFields(data, isCreate = false) {
       errors.push({ field: 'category_id', message: 'Category is required' });
   }
 
+  if (data.status !== undefined && !VALID_STATUSES.includes(data.status)) {
+    errors.push({ field: 'status', message: `status must be one of: ${VALID_STATUSES.join(', ')}` });
+  }
+
   if (errors.length > 0) throw new ValidationError('Gig validation failed', errors);
 }
 
@@ -66,8 +71,8 @@ function validateTier(tier, index) {
   if (!tier.tier || !VALID_TIERS.includes(tier.tier))
     errors.push({ field: `${prefix}.tier`, message: `tier must be one of: ${VALID_TIERS.join(', ')}` });
 
-  if (tier.price === undefined || isNaN(Number(tier.price)) || Number(tier.price) < 0)
-    errors.push({ field: `${prefix}.price`, message: 'price must be a non-negative number' });
+  if (tier.price === undefined || isNaN(Number(tier.price)) || Number(tier.price) <= 0)
+    errors.push({ field: `${prefix}.price`, message: 'price must be greater than 0' });
 
   if (!tier.delivery_days || isNaN(Number(tier.delivery_days)) || Number(tier.delivery_days) < 1)
     errors.push({ field: `${prefix}.delivery_days`, message: 'delivery_days must be a positive integer' });
@@ -98,10 +103,10 @@ function normalisePagination(pagination = {}) {
  * @throws {NotFoundError}  - If category not found
  */
 async function createGig(freelancerId, gigData) {
-  const { title, description, category_id, pricing_tiers, required_tags, thumbnail_url } = gigData;
+  const { title, description, category_id, pricing_tiers, required_tags, thumbnail_url, status = 'draft' } = gigData;
 
   // 1. Validate core fields
-  validateGigFields({ title, description, category_id }, true);
+  validateGigFields({ title, description, category_id, status }, true);
 
   // 2. Validate pricing tiers if provided
   if (pricing_tiers !== undefined) {
@@ -129,6 +134,7 @@ async function createGig(freelancerId, gigData) {
     title         : title.trim(),
     description   : description.trim(),
     thumbnail_url : thumbnail_url || null,
+    status,
   });
   if (gigErr) throw new Error(`Failed to create gig: ${gigErr.message}`);
 

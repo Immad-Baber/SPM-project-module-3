@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, Navbar, StickyNote, Btn } from "./shared";
+import { useCategories } from "../../hooks/useCategories";
 
 const CATEGORIES = [
   { icon: "💻", name: "Web Development",   count: 124 },
@@ -21,6 +22,15 @@ const TRENDING_TAGS = ["React", "Figma", "Python", "WordPress", "SEO", "Logo Des
 export default function CategorySelection({ onNavigate }) {
   const [hovered, setHovered] = useState(null);
   const [tagHovered, setTagHovered] = useState(null);
+  const { categories, loading, error } = useCategories();
+
+  // If no backend categories, fallback to mock data
+  const catsToRender = categories?.length > 0 ? categories.map(c => ({
+    id: c.id,
+    icon: c.icon_url || "💻", 
+    name: c.name,
+    count: c.jobs_count || 0 
+  })) : CATEGORIES;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
@@ -54,32 +64,38 @@ export default function CategorySelection({ onNavigate }) {
         </div>
 
         {/* ── 3×3 Category Grid ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {CATEGORIES.map((cat, i) => (
-            <div
-              key={i}
-              onClick={() => onNavigate("browse")}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-              style={{
-                background: C.white, border: `1px solid ${hovered === i ? C.textMuted : C.border}`,
-                borderRadius: 8, padding: "20px 20px",
-                display: "flex", alignItems: "center", gap: 16,
-                cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s, border-color 0.18s",
-                boxShadow: hovered === i ? "0 6px 20px rgba(0,0,0,0.1)" : "0 1px 3px rgba(0,0,0,0.04)",
-                transform: hovered === i ? "translateY(-2px)" : "none",
-              }}
-            >
-              <div style={{ width: 52, height: 52, borderRadius: 8, background: C.chipBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>
-                {cat.icon}
+        {loading ? (
+          <div style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>Loading categories...</div>
+        ) : error ? (
+          <div style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'DM Sans', sans-serif" }}>Error: {error}</div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {catsToRender.map((cat, i) => (
+              <div
+                key={i}
+                onClick={() => onNavigate("browsejobs", { categoryId: cat.id })}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  background: C.white, border: `1px solid ${hovered === i ? C.textMuted : C.border}`,
+                  borderRadius: 8, padding: "20px 20px",
+                  display: "flex", alignItems: "center", gap: 16,
+                  cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s, border-color 0.18s",
+                  boxShadow: hovered === i ? "0 6px 20px rgba(0,0,0,0.1)" : "0 1px 3px rgba(0,0,0,0.04)",
+                  transform: hovered === i ? "translateY(-2px)" : "none",
+                }}
+              >
+                <div style={{ width: 52, height: 52, borderRadius: 8, background: C.chipBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>
+                  {cat.icon}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", marginBottom: 3 }}>{cat.name}</div>
+                  <div style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{cat.count} open jobs</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 15, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", marginBottom: 3 }}>{cat.name}</div>
-                <div style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{cat.count} gigs available</div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* ── Trending Skill Tags ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -88,7 +104,7 @@ export default function CategorySelection({ onNavigate }) {
             {TRENDING_TAGS.map((tag, i) => (
               <button
                 key={tag}
-                onClick={() => onNavigate("browse")}
+                onClick={() => onNavigate("browsejobs", { q: tag })}
                 onMouseEnter={() => setTagHovered(i)}
                 onMouseLeave={() => setTagHovered(null)}
                 style={{

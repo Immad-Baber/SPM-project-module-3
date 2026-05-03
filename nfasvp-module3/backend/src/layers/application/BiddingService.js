@@ -81,6 +81,7 @@ async function submitBid(freelancerId, jobId, bidData) {
     bid_type      : bidData.bid_type      || 'fixed_price',
     duration_label: bidData.duration_label || null,
     cover_letter  : bidData.cover_letter.trim(),
+    milestones    : bidData.milestones || [],
   });
   if (bidErr) throw new Error(`Failed to create bid: ${bidErr.message}`);
 
@@ -259,10 +260,36 @@ async function rejectBid(bidId, clientId) {
   module6.notifyBidRejected(bid.freelancer_id, bid.job_id).catch(console.error);
 }
 
+/**
+ * Get a specific bid by ID.
+ *
+ * @param {string} bidId
+ * @param {string} userId - Must be either the freelancer who submitted it or the client who owns the job
+ * @returns {Promise<Object>}
+ * @throws {NotFoundError}
+ * @throws {ForbiddenError}
+ */
+async function getBidById(bidId, userId) {
+  const { data: bid, error } = await bidRepo.getBidById(bidId);
+  if (error || !bid) throw new NotFoundError('Bid');
+
+  // Verify access: freelancer who bid OR client who owns the job
+  const { data: job, error: jobErr } = await jobRepo.getJobById(bid.job_id);
+  if (jobErr || !job) throw new NotFoundError('Job');
+
+  if (bid.freelancer_id !== userId && job.client_id !== userId) {
+    throw new ForbiddenError('You do not have access to this bid');
+  }
+
+  // Attach job info for convenience
+  return { ...bid, job };
+}
+
 module.exports = {
   submitBid,
   getJobBids,
   getFreelancerBids,
+  getBidById,
   withdrawBid,
   acceptBid,
   rejectBid,

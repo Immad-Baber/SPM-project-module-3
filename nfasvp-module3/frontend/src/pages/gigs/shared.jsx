@@ -27,13 +27,22 @@ export const C = {
 };
 
 // ─── NAVBAR ──────────────────────────────────────────────────────────────────
-export function Navbar({ onNavigate, currentScreen }) {
-  const links = [
-    { label: "Browse",     key: "browse"     },
-    { label: "My Gigs",    key: "mygigs"     },
-    { label: "Create Gig", key: "create"     },
-    { label: "Categories", key: "categories" },
+export function Navbar({ onNavigate, currentScreen, role }) {
+  const freelancerLinks = [
+    { label: "Browse Jobs", key: "browsejobs" },
+    { label: "My Gigs",     key: "mygigs"     },
+    { label: "My Projects", key: "myprojects" },
+    { label: "Proposals",   key: "myproposals" },
   ];
+
+  const clientLinks = [
+    { label: "Browse Gigs",  key: "browse"    },
+    { label: "My Jobs",      key: "myjobs"    },
+    { label: "My Projects", key: "myprojects" },
+    { label: "Post Job",    key: "createjob"  },
+  ];
+
+  const links = role === "client" ? clientLinks : freelancerLinks;
 
   return (
     <nav style={{
@@ -104,15 +113,33 @@ export function Navbar({ onNavigate, currentScreen }) {
           textDecoration: "none",
         }}>FAQ</button>
 
+        {/* Search */}
+        <button onClick={() => onNavigate("search")} style={{
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 18, padding: "0 10px", color: C.white, opacity: 0.8
+        }}>🔍</button>
+
+        {/* Notifications */}
+        <button onClick={() => onNavigate("notifications")} style={{
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 18, padding: "0 10px", color: C.white, opacity: 0.8
+        }}>🔔</button>
+
         {/* Avatar */}
-        <div style={{
-          width: 34, height: 34, borderRadius: "50%",
-          background: "#374151", border: "1px solid #4B5563",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: C.white, fontSize: 13, fontWeight: 700,
-          cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-          marginLeft: 8,
-        }}>SA</div>
+        <div 
+          onClick={() => onNavigate("switch_role")}
+          title="Switch Role"
+          style={{
+            width: 34, height: 34, borderRadius: "50%",
+            background: role === 'client' ? "#3B82F6" : "#10B981", border: "1px solid rgba(255,255,255,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: C.white, fontSize: 13, fontWeight: 700,
+            cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+            marginLeft: 8,
+          }}
+        >
+          {role === 'client' ? 'CL' : 'FL'}
+        </div>
       </div>
     </nav>
   );

@@ -96,7 +96,7 @@ export default function MyProposals({ onNavigate }) {
           </div>
 
           {/* Stats Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 18 }}>
             {[
               { label: "Total Submitted", value: meta?.total || 0, color: C.navy },
               { label: "Pending Review", value: "-", color: "#D97706" }, // To get actual grouped counts, you'd need an aggregate endpoint
@@ -115,7 +115,7 @@ export default function MyProposals({ onNavigate }) {
           </div>
 
           {/* Filter Tabs */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: `1px solid ${C.border}`, overflowX: "auto", paddingBottom: 1, flexShrink: 0 }}>
             {TABS.map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)} style={{
                 padding: "16px 32px", border: "none", cursor: "pointer",
@@ -130,13 +130,14 @@ export default function MyProposals({ onNavigate }) {
           </div>
 
           {/* Proposals Table */}
-          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-            {/* Header */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1.3fr 1.3fr 1fr", background: "#EFEDF0" }}>
-              {["JOB TITLE", "CLIENT", "BID AMOUNT", "SUBMITTED", "STATUS", "ACTION"].map((h, i) => (
-                <div key={h} style={{ padding: "27px 32px", fontSize: 11, fontWeight: 700, color: C.navy, letterSpacing: "1.1px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif", textAlign: i === 5 ? "right" : "left" }}>{h}</div>
-              ))}
-            </div>
+          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflowX: "auto", boxShadow: "0 1px 2px rgba(0,0,0,0.05)", flexShrink: 0 }}>
+            <div style={{ minWidth: 900 }}>
+              {/* Header */}
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 1fr 1.3fr 1.3fr 1fr", background: "#EFEDF0" }}>
+                {["JOB TITLE", "CLIENT", "BID AMOUNT", "SUBMITTED", "STATUS", "ACTION"].map((h, i) => (
+                  <div key={h} style={{ padding: "27px 32px", fontSize: 11, fontWeight: 700, color: C.navy, letterSpacing: "1.1px", textTransform: "uppercase", fontFamily: "'Inter', sans-serif", textAlign: i === 5 ? "right" : "left" }}>{h}</div>
+                ))}
+              </div>
 
             {/* Rows */}
             {loading ? (
@@ -178,6 +179,7 @@ export default function MyProposals({ onNavigate }) {
                 No proposals found for this filter.
               </div>
             )}
+            </div>
           </div>
 
           {/* Footer CTA */}

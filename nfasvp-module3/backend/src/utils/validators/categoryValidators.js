@@ -1,6 +1,7 @@
 'use strict';
 
 const { body } = require('express-validator');
+const { isDatabaseUuid } = require('./uuidValidator');
 
 // Note: Using isUUID() instead of isInt() because Module 3 database uses UUIDs for all primary keys.
 
@@ -20,7 +21,7 @@ const createCategory = [
   
   body('parent_id')
     .optional()
-    .isUUID().withMessage('Parent ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Parent ID must be a valid UUID'),
   
   body('sort_order')
     .optional()
@@ -54,7 +55,7 @@ const updateCategory = [
   
   body('parent_id')
     .optional()
-    .isUUID().withMessage('Parent ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Parent ID must be a valid UUID'),
   
   body('sort_order')
     .optional()

@@ -36,6 +36,16 @@ router.get('/my-bids', requireRole('freelancer'), async (req, res, next) => {
   }
 });
 
+// GET /api/v1/bids/:id - Get a specific bid detail
+router.get('/:id', async (req, res, next) => {
+  try {
+    const bid = await biddingService.getBidById(req.params.id, req.user.id);
+    return success(res, bid);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PUT /api/v1/bids/:id/withdraw - Withdraw a bid (Freelancer only)
 router.put('/:id/withdraw', requireRole('freelancer'), async (req, res, next) => {
   try {

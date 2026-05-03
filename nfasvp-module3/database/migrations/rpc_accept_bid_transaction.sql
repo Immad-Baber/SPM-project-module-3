@@ -82,6 +82,30 @@ BEGIN
   )
   RETURNING * INTO v_project;
 
+  -- 5. Copy milestones from bid to project_milestones
+  -- We parse the JSONB array from the bid table
+  INSERT INTO project_milestones (
+    project_id,
+    title,
+    amount,
+    due_date,
+    status,
+    sort_order
+  )
+  SELECT
+    v_project.id,
+    (m.value->>'title')::VARCHAR,
+    (REPLACE(REPLACE(m.value->>'budget', '$', ''), ',', ''))::NUMERIC,
+    CASE 
+      WHEN (m.value->>'due') ~ '^\d{4}-\d{2}-\d{2}$' THEN (m.value->>'due')::DATE 
+      ELSE NULL 
+    END,
+    'pending',
+    (m.ordinality - 1)
+  FROM bids,
+       jsonb_array_elements(milestones) WITH ORDINALITY AS m
+  WHERE bids.id = p_bid_id;
+
   RETURN NEXT v_project;
 END;
 $$;

@@ -1,6 +1,7 @@
 'use strict';
 
 const { body } = require('express-validator');
+const { isDatabaseUuid } = require('./uuidValidator');
 
 // Note: Using isUUID() instead of isInt() because Module 3 database uses UUIDs for all primary keys.
 
@@ -18,11 +19,15 @@ const createGig = [
   
   body('category_id')
     .notEmpty().withMessage('Category ID is required')
-    .isUUID().withMessage('Category ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Category ID must be a valid UUID'),
     
   body('thumbnail_url')
     .optional()
     .isString().withMessage('Thumbnail URL must be a string'),
+
+  body('status')
+    .optional()
+    .isIn(['draft', 'live', 'paused']).withMessage('Status must be draft, live, or paused'),
   
   body('pricing_tiers')
     .optional()
@@ -34,7 +39,7 @@ const createGig = [
     
   body('pricing_tiers.*.price')
     .optional()
-    .isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
+    .isFloat({ min: 0.01 }).withMessage('Price must be greater than 0'),
     
   body('pricing_tiers.*.delivery_days')
     .optional()
@@ -42,7 +47,15 @@ const createGig = [
     
   body('pricing_tiers.*.deliverables')
     .optional()
-    .isArray({ min: 1 }).withMessage('Deliverables must be a non-empty array')
+    .isArray({ min: 1 }).withMessage('Deliverables must be a non-empty array'),
+
+  body('required_tags')
+    .optional()
+    .isArray().withMessage('Required tags must be an array of tag UUIDs'),
+
+  body('required_tags.*')
+    .optional()
+    .custom(isDatabaseUuid).withMessage('Each required tag must be a valid UUID')
 ];
 
 const updateGig = [
@@ -61,7 +74,7 @@ const updateGig = [
   
   body('category_id')
     .optional()
-    .isUUID().withMessage('Category ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Category ID must be a valid UUID'),
     
   body('thumbnail_url')
     .optional()

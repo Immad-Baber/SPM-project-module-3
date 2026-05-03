@@ -27,7 +27,11 @@ async function getAllCategories() {
 async function getCategoryTree() {
   return supabase
     .from('marketplace_categories')
-    .select('id, name, slug, description, icon_url, parent_id, is_active, sort_order')
+    .select(`
+      id, name, slug, description, icon_url, parent_id, is_active, sort_order,
+      jobs:jobs(count)
+    `)
+    .eq('jobs.status', 'open')
     .order('sort_order', { ascending: true });
 }
 

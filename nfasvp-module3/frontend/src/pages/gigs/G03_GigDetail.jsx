@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, Navbar, StickyNote, Stars, Btn } from "./shared";
+import { useGig } from "../../hooks/useGigs";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_GigDetail
 // ══════════════════════════════════════════════════════════════════════════════
-export default function GigDetail({ onNavigate }) {
+export default function GigDetail({ onNavigate, params, role }) {
   const [tab, setTab] = useState("About This Gig");
   const [pricing, setPricing] = useState("Basic");
 
@@ -27,15 +28,37 @@ export default function GigDetail({ onNavigate }) {
       deliverables: ["Everything in Standard", "Admin dashboard", "Unlimited revisions", "Priority support"],
     },
   };
-  const tier = TIERS[pricing];
+
+  const { gig, loading, error } = useGig(params?.id);
+  const realTiers = gig?.pricing_tiers || [];
+
+  useEffect(() => {
+    if (realTiers.length > 0 && !realTiers.find(t => t.name === pricing)) {
+      setPricing(realTiers[0].name);
+    }
+  }, [realTiers, pricing]);
+
+  const tier = realTiers.find(t => t.name === pricing) || TIERS[pricing]; 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} />
+      <Navbar onNavigate={onNavigate} role={role} />
 
       <div style={{ flex: 1, overflowY: "auto" }}>
-        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
+        {loading ? (
+          <div style={{ padding: 60, textAlign: "center", color: C.textPrimary, fontSize: 18, fontFamily: "'DM Sans', sans-serif" }}>
+            Loading gig details...
+          </div>
+        ) : (error || !gig) ? (
+          <div style={{ padding: 60, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            <div style={{ fontSize: 48 }}>🔍</div>
+            <h2 style={{ margin: 0, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{error || "Gig Not Found"}</h2>
+            <p style={{ color: C.textMuted, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Please select a gig from the Browse Gigs page.</p>
+            <Btn onClick={() => onNavigate("browse")} style={{ marginTop: 12 }}>Browse Gigs</Btn>
+          </div>
+        ) : (
+          <div style={{ maxWidth: 1240, margin: "0 auto", padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
 
           {/* Breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -61,21 +84,25 @@ export default function GigDetail({ onNavigate }) {
             {/* ── LEFT COLUMN (65%) ── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", letterSpacing: "-0.8px", lineHeight: 1.25 }}>
-                Build a High-Performance E-commerce Store with Next.js and Tailwind
+                {gig.title}
               </h1>
 
               {/* Freelancer Row */}
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 10, background: C.navBg, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${C.border}` }}>AR</div>
+                <div style={{ width: 46, height: 46, borderRadius: 10, background: C.navBg, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${C.border}` }}>
+                  {gig.freelancer_id ? "FR" : "AR"}
+                </div>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 700, fontSize: 15, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Ahmed Raza</span>
+                    <span style={{ fontWeight: 700, fontSize: 15, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>
+                      Freelancer {gig.freelancer_id?.substring(0, 4) || 'Ahmed Raza'}
+                    </span>
                     <span style={{ background: "#10B981", borderRadius: 10, padding: "2px 8px", fontSize: 9, fontWeight: 700, color: C.white, letterSpacing: "0.5px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>SKILL VERIFIED</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                    <Stars rating="4.9" count="124" />
+                    <Stars rating={gig.avg_rating || "0.0"} count={gig.review_count || "0"} />
                     <span style={{ color: C.textMuted, fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>·</span>
-                    <span style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>240 orders completed</span>
+                    <span style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{gig.review_count || "0"} orders completed</span>
                   </div>
                 </div>
               </div>
@@ -103,7 +130,7 @@ export default function GigDetail({ onNavigate }) {
                   <div>
                     <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Description</h3>
                     <p style={{ margin: 0, fontSize: 14, color: C.textSecondary, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
-                      Are you looking to scale your business with a lightning-fast web application? I specialize in building SEO-friendly, high-performance e-commerce stores using the latest web technologies. My approach focuses on user experience, conversion rates, and clean, maintainable code.
+                      {gig.description || "No description provided."}
                     </p>
                   </div>
 
@@ -111,7 +138,11 @@ export default function GigDetail({ onNavigate }) {
                   <div>
                     <h3 style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 600, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Skills Used</h3>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {["Next.js", "React", "Tailwind CSS", "Node.js", "MongoDB"].map(s => (
+                      {(Array.isArray(gig.required_skills) ? gig.required_skills.map(s => {
+                    if (typeof s === 'string') return s;
+                    if (s && s.tag && typeof s.tag.name === 'string') return s.tag.name;
+                    return s.name || s.tag || 'Skill';
+                  }) : ["Skill"]).map(s => (
                         <span key={s} style={{ background: C.chipBg, border: `1px solid ${C.border}`, borderRadius: 12, padding: "5px 12px", fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 5 }}>
                           <span style={{ fontSize: 10, fontWeight: 700 }}>✓</span>{s}
                         </span>
@@ -225,6 +256,7 @@ export default function GigDetail({ onNavigate }) {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

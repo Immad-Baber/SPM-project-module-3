@@ -1,13 +1,14 @@
 'use strict';
 
 const { body } = require('express-validator');
+const { isDatabaseUuid } = require('./uuidValidator');
 
 // Note: Using isUUID() instead of isInt() because Module 3 database uses UUIDs for all primary keys.
 
 const submitBid = [
   body('job_id')
     .notEmpty().withMessage('Job ID is required')
-    .isUUID().withMessage('Job ID must be a valid UUID'),
+    .custom(isDatabaseUuid).withMessage('Job ID must be a valid UUID'),
   
   body('cover_letter')
     .isString().withMessage('Cover letter must be a string')

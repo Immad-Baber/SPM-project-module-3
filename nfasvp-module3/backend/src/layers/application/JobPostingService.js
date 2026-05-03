@@ -76,6 +76,11 @@ function validateJobFields(data) {
   if (errors.length > 0) throw new ValidationError('Job validation failed', errors);
 }
 
+function normalizeProjectType(projectType) {
+  if (!projectType || projectType === 'fixed') return 'fixed_price';
+  return projectType;
+}
+
 /**
  * Validate and normalise pagination params.
  * @param {{ page?: number, limit?: number }} pagination
@@ -108,6 +113,7 @@ async function createJob(clientId, jobData) {
     experience_level, expires_at, required_skills,
     project_type = 'fixed_price',
   } = jobData;
+  const normalizedProjectType = normalizeProjectType(project_type);
 
   const errors = [];
   if (!title || title.trim().length === 0)       errors.push({ field: 'title',       message: 'Title is required' });
@@ -127,7 +133,7 @@ async function createJob(clientId, jobData) {
     title:     title.trim(),
     description: description.trim(),
     category_id,
-    project_type,
+    project_type: normalizedProjectType,
     budget_min:       budget_min  ?? null,
     budget_max:       budget_max  ?? null,
     duration_label:   duration_label   ?? null,

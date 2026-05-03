@@ -1,222 +1,187 @@
 import { useState } from "react";
 import { C, Navbar, StickyNote, Btn } from "./shared";
+import { useCreateGig } from "../../hooks/useGigs";
+import { useCategories } from "../../hooks/useCategories";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_CreateGig
 // ══════════════════════════════════════════════════════════════════════════════
-export default function CreateGig({ onNavigate }) {
-  const [step, setStep] = useState(1);
-  const [activeTab, setActiveTab] = useState("Basic");
+export default function CreateGig({ onNavigate, role }) {
+  const { createGig, loading, error } = useCreateGig();
+  const { categories, loading: loadingCats } = useCategories();
+  
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    category_id: "",
+    required_skills: "",
+    pricing: [
+      { tier: "basic",    price: "", delivery_days: "", desc: "" },
+      { tier: "standard", price: "", delivery_days: "", desc: "" },
+      { tier: "premium",  price: "", delivery_days: "", desc: "" },
+    ]
+  });
 
-  const STEPS = ["Overview", "Pricing", "Description", "Publish"];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Simple validation
+    if (!form.title || !form.description) {
+      alert("Please fill in basic gig info.");
+      return;
+    }
 
-  const fieldStyle = {
-    width: "100%", padding: "11px 14px", border: `1px solid ${C.border}`,
-    borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white,
-    fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box",
+    const payload = {
+      ...form,
+      required_skills: form.required_skills.split(",").map(s => s.trim()).filter(Boolean),
+      pricing_tiers: form.pricing.map(p => ({
+        ...p,
+        price: parseInt(p.price) || 0,
+        delivery_days: parseInt(p.delivery_days) || 1
+      }))
+    };
+
+    const success = await createGig(payload);
+    if (success) {
+      alert("Gig created successfully!");
+      onNavigate("mygigs");
+    }
   };
+
+  const updatePricing = (index, field, value) => {
+    const newPricing = [...form.pricing];
+    newPricing[index][field] = value;
+    setForm({ ...form, pricing: newPricing });
+  };
+
+  const inputStyle = {
+    width: "100%", padding: "12px", border: `1px solid ${C.border}`, borderRadius: 6,
+    fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box"
+  };
+
   const labelStyle = {
-    fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px",
-    textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 6,
+    fontSize: 12, fontWeight: 700, color: C.textSecondary, marginBottom: 6, display: "block"
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} />
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
+      <Navbar onNavigate={onNavigate} role={role} />
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      <main style={{ flex: 1, padding: "40px 24px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: 32, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+          
+          <h1 style={{ margin: "0 0 8px", fontSize: 28, fontWeight: 800, color: C.black }}>Create a New Gig</h1>
+          <p style={{ margin: "0 0 32px", color: C.textSecondary }}>Set up your service and start receiving orders from clients.</p>
 
-        {/* ── Left Form Panel ── */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px", display: "flex", flexDirection: "column", gap: 20, maxWidth: 760 }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            
+            {/* Basic Info */}
+            <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, borderBottom: `1px solid ${C.border}`, paddingBottom: 10 }}>1. Basic Information</h3>
+              
+              <div>
+                <label style={labelStyle}>GIG TITLE</label>
+                <input 
+                  placeholder="e.g. I will design a professional React website for your business"
+                  value={form.title}
+                  onChange={e => setForm({ ...form, title: e.target.value })}
+                  style={inputStyle}
+                />
+              </div>
 
-          {/* Header */}
-          <div>
-            <h1 style={{ margin: "0 0 6px", fontSize: 30, fontWeight: 800, color: C.black, fontFamily: "'DM Sans', sans-serif", letterSpacing: "-0.8px" }}>
-              Create a New Gig
-            </h1>
-            <p style={{ margin: 0, fontSize: 15, color: C.textSecondary, fontFamily: "'DM Sans', sans-serif" }}>
-              Fill in the details below to publish your listing
-            </p>
-          </div>
-
-          {/* Progress Stepper */}
-          <div style={{ display: "flex", alignItems: "center" }}>
-            {STEPS.map((s, i) => (
-              <div key={s} style={{ display: "flex", alignItems: "center", flex: i < STEPS.length - 1 ? 1 : "none" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => setStep(i + 1)}>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 15,
-                    background: step === i + 1 ? C.black : step > i + 1 ? "#10B981" : "#F1F5F9",
-                    border: step >= i + 1 ? "none" : `1px solid ${C.border}`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: step >= i + 1 ? C.white : "#94A3B8",
-                    fontWeight: 700, fontSize: 12, fontFamily: "'DM Sans', sans-serif",
-                  }}>
-                    {step > i + 1 ? "✓" : i + 1}
-                  </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.6px", textTransform: "uppercase", color: step === i + 1 ? C.black : "#94A3B8", fontFamily: "'DM Sans', sans-serif" }}>{s}</span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>CATEGORY</label>
+                  <select 
+                    value={form.category_id}
+                    onChange={e => setForm({ ...form, category_id: e.target.value })}
+                    style={inputStyle}
+                  >
+                    <option value="">{loadingCats ? "Loading..." : "Select Category"}</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
-                {i < STEPS.length - 1 && <div style={{ flex: 1, height: 1, background: "#E2E8F0", margin: "0 12px" }} />}
-              </div>
-            ))}
-          </div>
-
-          {/* Form Card */}
-          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, padding: "22px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
-
-            {/* Section — Basic Details */}
-            <div style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 4 }}>
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Basic Details</h3>
-            </div>
-
-            {/* Gig Title */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label style={labelStyle}>GIG TITLE</label>
-              <input placeholder='e.g. I will design a modern minimalist brand identity' style={fieldStyle} />
-              <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Keep it clear and professional. Max 80 characters.</span>
-            </div>
-
-            {/* Category + Skill Tags */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label style={labelStyle}>CATEGORY</label>
-                <select style={{ ...fieldStyle }}>
-                  <option>Select Category</option>
-                  {["Web Development", "Graphic Design", "Content Writing", "Mobile Apps", "Data & Analytics"].map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>SKILL TAGS <span style={{ fontSize: 9, color: C.textMuted, textTransform: "none", letterSpacing: 0 }}>(Verified skills only)</span></label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8, border: `1px solid ${C.border}`, borderRadius: 4, background: C.chipBg, minHeight: 46 }}>
-                  {["React", "Node.js"].map(tag => (
-                    <span key={tag} style={{ background: C.badgeBg, borderRadius: 12, padding: "4px 10px", fontSize: 12, fontWeight: 600, color: C.textPrimary, display: "flex", alignItems: "center", gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
-                      {tag} <span style={{ cursor: "pointer", opacity: 0.5, fontSize: 10 }}>✕</span>
-                    </span>
-                  ))}
-                  <input placeholder="Add skills..." style={{ border: "none", background: "transparent", fontSize: 13, color: C.textPrimary, outline: "none", fontFamily: "'DM Sans', sans-serif", minWidth: 80 }} />
+                <div>
+                  <label style={labelStyle}>SKILLS (COMMA SEPARATED)</label>
+                  <input 
+                    placeholder="React, Figma, Tailwind..."
+                    value={form.required_skills}
+                    onChange={e => setForm({ ...form, required_skills: e.target.value })}
+                    style={inputStyle}
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* Section — Media */}
-            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
-              <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Media</h3>
-              <label style={labelStyle}>GIG THUMBNAIL</label>
-              <div style={{ border: `2px dashed ${C.border}`, borderRadius: 8, background: C.chipBg, height: 152, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer" }}>
-                <span style={{ fontSize: 28, color: C.textMuted }}>📁</span>
-                <span style={{ fontSize: 14, fontWeight: 500, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Click to upload or drag and drop</span>
-                <span style={{ fontSize: 12, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>PNG, JPG up to 10MB</span>
+              <div>
+                <label style={labelStyle}>DESCRIPTION</label>
+                <textarea 
+                  rows={5}
+                  placeholder="Describe what you offer in detail..."
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  style={{ ...inputStyle, resize: "vertical" }}
+                />
               </div>
-            </div>
+            </section>
 
-            {/* Section — Description */}
-            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
-              <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Description</h3>
-              <label style={labelStyle}>GIG DESCRIPTION</label>
-              <textarea
-                placeholder="Briefly describe your gig to potential buyers. Highlight what makes your service unique and why they should choose you."
-                rows={4}
-                style={{ ...fieldStyle, resize: "vertical" }}
-              />
-            </div>
+            {/* Pricing Tiers */}
+            <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, borderBottom: `1px solid ${C.border}`, paddingBottom: 10 }}>2. Pricing & Packages</h3>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                {form.pricing.map((tier, i) => (
+                  <div key={tier.tier} style={{ background: "#F8FAFC", border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ fontWeight: 800, color: C.black, fontSize: 14, textAlign: "center", textTransform: "capitalize" }}>{tier.tier}</div>
+                    
+                    <div>
+                      <label style={labelStyle}>PRICE (PKR)</label>
+                      <input 
+                        type="number"
+                        value={tier.price}
+                        onChange={e => updatePricing(i, "price", e.target.value)}
+                        style={{ ...inputStyle, padding: "8px" }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label style={labelStyle}>DELIVERY (DAYS)</label>
+                      <input 
+                        type="number"
+                        value={tier.delivery_days}
+                        onChange={e => updatePricing(i, "delivery_days", e.target.value)}
+                        style={{ ...inputStyle, padding: "8px" }}
+                      />
+                    </div>
 
-            {/* Portfolio Samples */}
-            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
-              <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Portfolio Samples</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                {[1, 2, 3].map(i => (
-                  <div key={i} style={{ border: `2px dashed ${C.border}`, borderRadius: 6, height: 100, display: "flex", alignItems: "center", justifyContent: "center", background: C.chipBg, cursor: "pointer" }}>
-                    <span style={{ fontSize: 22, color: C.textMuted }}>+</span>
+                    <div>
+                      <label style={labelStyle}>DESCRIPTION</label>
+                      <textarea 
+                        rows={3}
+                        value={tier.desc}
+                        onChange={e => updatePricing(i, "desc", e.target.value)}
+                        style={{ ...inputStyle, padding: "8px", fontSize: 12 }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
+            </section>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingTop: 20, borderTop: `1px solid ${C.border}` }}>
+              <Btn variant="outlined" onClick={() => onNavigate("mygigs")}>Cancel</Btn>
+              <Btn type="submit" disabled={loading}>{loading ? "Creating..." : "Publish Gig"}</Btn>
             </div>
 
-            {/* Copyright Warning */}
-            <div style={{ background: "rgba(255,218,214,0.2)", borderLeft: `4px solid ${C.red}`, borderRadius: "0 4px 4px 0", padding: "12px 16px" }}>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.redDark, lineHeight: 1.5, fontFamily: "'DM Sans', sans-serif" }}>
-                ⚠ Note: Please ensure all uploaded assets are original or you have the necessary licenses. MarketPlace maintains a zero-tolerance policy for copyright infringement.
-              </p>
-            </div>
-          </div>
+            {error && <div style={{ color: "red", fontSize: 14, textAlign: "right" }}>{error}</div>}
+          </form>
 
-          {/* Footer Actions */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
-            <Btn variant="ghost" onClick={() => onNavigate("browse")}>Cancel</Btn>
-            <div style={{ display: "flex", gap: 12 }}>
-              <Btn variant="outlined" onClick={() => onNavigate("mygigs")}>Save as Draft</Btn>
-              <Btn onClick={() => onNavigate("mygigs")}>Publish Gig →</Btn>
-            </div>
+          <div style={{ marginTop: 32 }}>
+            <StickyNote text="🔗 Publish Gig → API call to gig service · Redirects to G03_MyGigs on success." />
           </div>
         </div>
-
-        {/* ── Right Panel — Pricing Tiers ── */}
-        <div style={{ width: 340, flexShrink: 0, background: C.white, borderLeft: `1px solid ${C.border}`, padding: 28, overflowY: "auto", display: "flex", flexDirection: "column", gap: 20 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Pricing Tiers</h3>
-
-          {/* Tab switcher */}
-          <div style={{ display: "flex", background: "#F1F5F9", borderRadius: 4, padding: 4 }}>
-            {["Basic", "Standard", "Premium"].map(t => (
-              <button key={t} onClick={() => setActiveTab(t)} style={{
-                flex: 1, padding: "8px 0", border: "none", cursor: "pointer", borderRadius: 3,
-                background: activeTab === t ? C.white : "transparent",
-                boxShadow: activeTab === t ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
-                fontWeight: activeTab === t ? 700 : 500, fontSize: 13,
-                color: activeTab === t ? C.black : "#64748B",
-                fontFamily: "'DM Sans', sans-serif",
-              }}>{t}</button>
-            ))}
-          </div>
-
-          {/* Tier Form Fields */}
-          <div style={{ border: "1px solid #E2E8F0", borderRadius: 4, padding: 18, background: "rgba(248,250,252,0.4)", display: "flex", flexDirection: "column", gap: 14 }}>
-            <div>
-              <label style={{ ...labelStyle, color: C.textSecondary }}>PACKAGE NAME</label>
-              <input placeholder="e.g. Bronze Package" style={{ ...{ width: "100%", padding: "11px 14px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" } }} />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div>
-                <label style={{ ...labelStyle, color: C.textSecondary }}>PRICE PKR</label>
-                <input placeholder="e.g. 5000" style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" }} />
-              </div>
-              <div>
-                <label style={{ ...labelStyle, color: C.textSecondary }}>DELIVERY DAYS</label>
-                <select style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                  {[1, 2, 3, 5, 7, 10, 14].map(d => <option key={d}>{d} Days</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ ...labelStyle, color: C.textSecondary }}>REVISIONS</label>
-                <select style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                  {["1 Revision", "2 Revisions", "3 Revisions", "Unlimited"].map(r => <option key={r}>{r}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ ...labelStyle, color: C.textSecondary }}>DELIVERABLES</label>
-                <input placeholder="Source files, etc." style={{ width: "100%", padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 4, fontSize: 14, color: C.textPrimary, background: C.white, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Info Note */}
-          <div style={{ background: "#EFF6FF", borderLeft: `4px solid ${C.black}`, borderRadius: 2, padding: "14px 16px", display: "flex", gap: 12 }}>
-            <span style={{ fontSize: 14 }}>ℹ️</span>
-            <p style={{ margin: 0, fontSize: 12, color: "#131B2E", lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>
-              Only verified skills from <strong>Module 2 – Skill Assessment</strong> will be shown in the skill tags dropdown.
-            </p>
-          </div>
-
-          {/* Footer links */}
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Btn variant="ghost" onClick={() => onNavigate("browse")}>Cancel</Btn>
-            <div style={{ display: "flex", gap: 10 }}>
-              <Btn variant="outlined" small onClick={() => onNavigate("mygigs")}>Save as Draft</Btn>
-              <Btn small onClick={() => onNavigate("mygigs")}>Publish Gig</Btn>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

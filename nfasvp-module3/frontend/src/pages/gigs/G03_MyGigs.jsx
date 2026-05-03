@@ -1,200 +1,117 @@
-import { C, Navbar, StickyNote, StatusBadge, Btn } from "./shared";
+import { useState } from "react";
+import { C, Navbar, StickyNote, Stars, Btn } from "./shared";
 import { useMyGigs } from "../../hooks/useGigs";
+
+// ─── MINI GIG CARD (FOR DASHBOARD) ──────────────────────────────────────────
+function MyGigCard({ gig, onNavigate }) {
+  const [hovered, setHovered] = useState(false);
+  
+  const basicTier = gig.pricing_tiers?.[0] || {};
+  const price = basicTier.price ? `PKR ${basicTier.price}` : "Price N/A";
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: C.white, border: `1px solid ${C.border}`, borderRadius: 6,
+        padding: 16, display: "flex", gap: 16, alignItems: "center",
+        transition: "box-shadow 0.2s, transform 0.2s",
+        boxShadow: hovered ? "0 4px 12px rgba(0,0,0,0.08)" : "none",
+        transform: hovered ? "translateY(-1px)" : "none",
+      }}
+    >
+      {/* Icon / Thumbnail */}
+      <div style={{ width: 60, height: 60, background: "#F1F5F9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>
+        💻
+      </div>
+
+      {/* Info */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>
+          {gig.title}
+        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: C.black }}>{price}</span>
+          <span style={{ color: C.border }}>|</span>
+          <Stars rating={gig.avg_rating || "0.0"} count={gig.review_count || "0"} />
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <Btn small variant="outlined" onClick={() => onNavigate("edit", { id: gig.id })}>Edit</Btn>
+        <Btn small onClick={() => onNavigate("detail", { id: gig.id })}>View</Btn>
+      </div>
+    </div>
+  );
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // G03_MyGigs
 // ══════════════════════════════════════════════════════════════════════════════
-export default function MyGigs({ onNavigate }) {
-  const { gigs: apiGigs, loading, error, meta } = useMyGigs();
-
-  // Map API response to table row format
-  const MY_GIGS = apiGigs.map(g => {
-    const tier = g.pricing_tiers?.[0] || {};
-    return {
-      id: g.id,
-      title: g.title,
-      category: g.category?.name || "General",
-      status: g.is_active ? "Live" : "Draft",
-      price: tier.price ? `PKR ${tier.price}` : "—",
-      orders: 0, // order counts not in gig list endpoint
-      rating: g.avg_rating ? `${g.avg_rating} ⭐` : "—",
-      thumb: "💻",
-    };
-  });
-
-  const STATS = [
-    { label: "TOTAL GIGS",   value: meta?.total ?? MY_GIGS.length, color: C.textPrimary },
-    { label: "LIVE",         value: MY_GIGS.filter(g => g.status === "Live").length, color: C.green, dot: true },
-    { label: "TOTAL ORDERS", value: "—",     color: C.textPrimary },
-    { label: "AVG RATING",   value: "—", color: C.textPrimary },
-  ];
+export default function MyGigs({ onNavigate, role }) {
+  const { gigs, loading, error, refresh } = useMyGigs();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'DM Sans', sans-serif", background: C.bgPage }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Navbar onNavigate={onNavigate} />
+      <Navbar onNavigate={onNavigate} role={role} />
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-
-        {/* ── Sidebar ── */}
-        <aside style={{ width: 232, flexShrink: 0, background: C.white, borderRight: "1px solid #E2E8F0", padding: "20px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ marginBottom: 8 }}>
-            <div style={{ fontWeight: 800, fontSize: 16, color: "#0F172A", fontFamily: "'DM Sans', sans-serif" }}>GigMarket</div>
-            <div style={{ fontSize: 11, color: "#64748B", fontFamily: "'DM Sans', sans-serif", letterSpacing: "1px", textTransform: "uppercase" }}>Pro Freelancing</div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {[
-              { icon: "🏠", label: "Dashboard",  active: false },
-              { icon: "📋", label: "My Gigs",    active: true  },
-              { icon: "📦", label: "Orders",     active: false },
-              { icon: "💬", label: "Messages",   active: false },
-            ].map(item => (
-              <div key={item.label} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
-                borderRadius: 5, cursor: "pointer",
-                background: item.active ? "#F1F5F9" : "transparent",
-                fontWeight: item.active ? 700 : 400,
-                color: item.active ? "#0F172A" : "#475569",
-                fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-              }}>
-                <span style={{ fontSize: 14 }}>{item.icon}</span>
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: "1px solid #F1F5F9", paddingTop: 12, marginTop: 8 }}>
-            <Btn style={{ width: "100%", justifyContent: "center", fontSize: 13 }} onClick={() => onNavigate("create")}>+ New Gig</Btn>
-          </div>
-
-          <div style={{ borderTop: "1px solid #F1F5F9", paddingTop: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", cursor: "pointer", color: "#475569", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
-              <span>⚙️</span><span>Settings</span>
-            </div>
-          </div>
-        </aside>
-
-        {/* ── Main Canvas ── */}
-        <main style={{ flex: 1, overflowY: "auto", padding: "24px 28px", background: "#F6F3F5", display: "flex", flexDirection: "column", gap: 20 }}>
-
-          <StickyNote text="🔗 Client column → Links to G01 – Profile Management · In Progress status → Links to G07 – Payment & Escrow" />
-
+      <main style={{ flex: 1, overflowY: "auto", padding: "40px 24px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", flexDirection: "column", gap: 28 }}>
+          
           {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <div>
-              <h1 style={{ margin: "0 0 4px", fontSize: 30, fontWeight: 800, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif", letterSpacing: "-0.8px" }}>My Gigs</h1>
-              <p style={{ margin: 0, fontSize: 13, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>Manage your freelance service listings</p>
+              <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: C.black, letterSpacing: "-1px" }}>My Gigs</h1>
+              <p style={{ margin: "4px 0 0", color: C.textSecondary, fontSize: 15 }}>Manage your service offerings and track performance.</p>
             </div>
             <Btn onClick={() => onNavigate("create")}>+ Create New Gig</Btn>
           </div>
 
-          {/* Stats Cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-            {STATS.map(s => (
-              <div key={s.label} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, padding: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.textSecondary, letterSpacing: "0.8px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>{s.label}</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 28, fontWeight: 800, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>{s.value}</span>
-                  {s.dot && <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.green, display: "inline-block" }} />}
+          {/* Stats Bar */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {[
+              { label: "Active Gigs", value: gigs?.length || 0, icon: "✅" },
+              { label: "Total Orders", value: "24", icon: "📦" },
+              { label: "Earnings", value: "PKR 45,000", icon: "💰" },
+            ].map(s => (
+              <div key={s.label} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, display: "flex", alignItems: "center", gap: 14 }}>
+                <span style={{ fontSize: 24 }}>{s.icon}</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: C.textPrimary }}>{s.value}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Filter + Gigs Table */}
-          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
-            {/* Filter Bar */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "rgba(246,243,245,0.4)", borderBottom: `1px solid ${C.border}` }}>
-              <div style={{ position: "relative", width: 300 }}>
-                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: C.textMuted, fontSize: 14 }}>🔍</span>
-                <input placeholder="Search gigs..." style={{ width: "100%", padding: "8px 12px 8px 36px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" }} />
+          {/* List */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <h2 style={{ margin: "10px 0 4px", fontSize: 18, fontWeight: 700, color: C.textPrimary }}>Active Service Listings</h2>
+            
+            {loading ? (
+              <div style={{ padding: 40, textAlign: "center", color: C.textMuted }}>Loading your gigs...</div>
+            ) : error ? (
+              <div style={{ padding: 40, textAlign: "center", color: "red" }}>Error: {error}</div>
+            ) : gigs.length === 0 ? (
+              <div style={{ padding: 60, textAlign: "center", background: C.white, border: `1px dashed ${C.border}`, borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                <div style={{ fontSize: 40 }}>📁</div>
+                <p style={{ margin: 0, color: C.textMuted }}>You haven't created any gigs yet.</p>
+                <Btn onClick={() => onNavigate("create")} variant="outlined">Create Your First Gig</Btn>
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <select style={{ padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                  <option>All Status</option><option>Live</option><option>Draft</option><option>Paused</option>
-                </select>
-                <select style={{ padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                  <option>Sort: Newest</option><option>Sort: Oldest</option><option>Sort: Top Rated</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Table */}
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "rgba(246,243,245,0.5)" }}>
-                  {["Gig Title", "Category", "Status", "Price", "Orders", "Rating", "Actions"].map((h, i) => (
-                    <th key={h} style={{ padding: "12px 16px", textAlign: i === 6 ? "right" : "left", fontSize: 11, fontWeight: 700, color: C.textPrimary, letterSpacing: "0.6px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", borderBottom: `1px solid ${C.border}` }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              {loading ? (
-                <tbody><tr><td colSpan={7} style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>Loading gigs…</td></tr></tbody>
-              ) : error ? (
-                <tbody><tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "red", fontFamily: "'DM Sans', sans-serif" }}>Error: {error}</td></tr></tbody>
-              ) : MY_GIGS.length === 0 ? (
-                <tbody><tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>No gigs yet. Create your first gig!</td></tr></tbody>
-              ) : (
-              <tbody>
-                {MY_GIGS.map((g, idx) => (
-                  <tr key={g.id} style={{ background: idx % 2 === 1 ? "rgba(246,243,245,0.2)" : C.white, borderTop: `1px solid ${C.border}` }}>
-                    <td style={{ padding: "14px 16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: 4, background: "#F1F5F9", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{g.thumb}</div>
-                        <span style={{ fontWeight: 600, fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{g.title}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px 16px", fontSize: 13, color: C.textMuted, fontFamily: "'DM Sans', sans-serif" }}>{g.category}</td>
-                    <td style={{ padding: "14px 16px" }}><StatusBadge status={g.status} /></td>
-                    <td style={{ padding: "14px 16px", fontWeight: 600, fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{g.price}</td>
-                    <td style={{ padding: "14px 16px", fontSize: 14, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{g.orders}</td>
-                    <td style={{ padding: "14px 16px", fontSize: 13, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>{g.rating}</td>
-                    <td style={{ padding: "14px 16px" }}>
-                      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                        <Btn small onClick={() => onNavigate("edit")}>Edit</Btn>
-                        <Btn small variant="outlined">{g.status === "Draft" ? "Publish" : "Pause"}</Btn>
-                        <Btn small variant="ghost" onClick={() => onNavigate("detail")}>View</Btn>
-                        {g.status === "Draft" && <Btn small variant="danger">Delete</Btn>}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              )}
-            </table>
+            ) : (
+              gigs.map(g => <MyGigCard key={g.id} gig={g} onNavigate={onNavigate} />)
+            )}
           </div>
 
-          {/* Recent Orders */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.textPrimary, fontFamily: "'DM Sans', sans-serif" }}>Recent Orders</h2>
-              <StickyNote text="🔗 In Progress → Links to G07 – Payment & Escrow · Client → Links to G01 – Profile Management" />
-            </div>
-
-            <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "rgba(246,243,245,0.5)" }}>
-                    {["Order ID", "Gig Title", "Client", "Package", "Status", "Date"].map(h => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: C.textPrimary, letterSpacing: "0.6px", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", borderBottom: `1px solid ${C.border}` }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[].length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ padding: "24px", textAlign: "center", color: C.textMuted, fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
-                        No recent orders. Orders will appear here once clients purchase your gigs.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
+          <div style={{ marginTop: 20 }}>
+            <StickyNote text="🔗 Create New Gig → G03_CreateGig · Edit → G03_EditGig · View → G03_GigDetail" />
           </div>
-        </main>
-      </div>
+
+        </div>
+      </main>
     </div>
   );
 }
